@@ -1,0 +1,133 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  username  String   @unique
+  password  String
+  avatar    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  bodyMeasurements BodyMeasurement?
+  clothingItems    ClothingItem[]
+  savedLooks       SavedLook[]
+  feedPosts        FeedPost[]
+  likes            Like[]
+  follows          Follow[] @relation("UserFollows")
+  followers        Follow[] @relation("UserFollowers")
+
+  @@map("users")
+}
+
+model BodyMeasurement {
+  id             String @id @default(cuid())
+  userId         String @unique
+  height         Float
+  chest          Float
+  waist          Float
+  hips           Float
+  shoulderWidth  Float
+  pose           String @default("A-pose")
+  meshData       String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("body_measurements")
+}
+
+model ClothingItem {
+  id        String   @id @default(cuid())
+  name      String
+  category  String
+  type      String
+  meshData  String?
+  texture   String?
+  tags      String
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lookItems  LookItem[]
+
+  @@map("clothing_items")
+}
+
+model SavedLook {
+  id         String   @id @default(cuid())
+  name       String
+  userId     String
+  screenshot String?
+  tags       String
+  isPublic   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     LookItem[]
+  feedPosts FeedPost[]
+
+  @@map("saved_looks")
+}
+
+model LookItem {
+  id             String @id @default(cuid())
+  lookId         String
+  clothingItemId String
+  slot           String
+
+  look         SavedLook    @relation(fields: [lookId], references: [id], onDelete: Cascade)
+  clothingItem ClothingItem @relation(fields: [clothingItemId], references: [id], onDelete: Cascade)
+
+  @@unique([lookId, slot])
+  @@map("look_items")
+}
+
+model FeedPost {
+  id        String   @id @default(cuid())
+  userId    String
+  lookId    String
+  caption   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  look  SavedLook @relation(fields: [lookId], references: [id], onDelete: Cascade)
+  likes Like[]
+
+  @@map("feed_posts")
+}
+
+model Like {
+  id     String @id @default(cuid())
+  userId String
+  postId String
+
+  user User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post FeedPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@map("likes")
+}
+
+model Follow {
+  id          String @id @default(cuid())
+  followerId  String
+  followingId String
+
+  follower  User @relation("UserFollows", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("UserFollowers", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@map("follows")
+}
