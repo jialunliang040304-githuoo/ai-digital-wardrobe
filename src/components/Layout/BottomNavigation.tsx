@@ -49,12 +49,17 @@ const BottomNavigation: React.FC = () => {
 
   return (
     <nav 
-      className="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-full max-w-md bg-white border-t border-gray-200 px-4 py-2 safe-area-pb"
+      className="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-full max-w-md border-t safe-area-pb"
+      style={{ 
+        backgroundColor: 'var(--card)', 
+        borderColor: 'var(--border)',
+        boxShadow: '0 -4px 6px rgba(0,0,0,0.05)'
+      }}
       role="navigation"
       aria-label="主导航"
       id="navigation"
     >
-      <div className="flex justify-around items-center" role="tablist" aria-orientation="horizontal">
+      <div className="flex justify-around items-center px-4 py-2" role="tablist" aria-orientation="horizontal">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
@@ -64,12 +69,14 @@ const BottomNavigation: React.FC = () => {
               key={item.id}
               onClick={() => handleTabChange(item.id)}
               className={`
-                flex flex-col items-center justify-center min-h-touch min-w-touch p-2 rounded-lg transition-all duration-200
+                group flex flex-col items-center justify-center min-h-touch min-w-touch p-2 rounded-xl transition-all duration-200
                 ${isActive 
-                  ? 'text-primary-600 bg-primary-50' 
-                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                  ? item.isCenter 
+                    ? 'bg-gradient-accent text-accent-foreground shadow-accent scale-110' 
+                    : 'text-accent bg-accent/10'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                 }
-                ${item.isCenter ? 'bg-primary-500 text-white hover:bg-primary-600 rounded-full p-2 sm:p-3' : ''}
+                ${item.isCenter ? 'relative -mt-2' : ''}
               `}
               role="tab"
               aria-label={`切换到${item.label}页面`}
@@ -78,13 +85,20 @@ const BottomNavigation: React.FC = () => {
               tabIndex={isActive ? 0 : -1}
             >
               <Icon 
-                size={item.isCenter ? 20 : 18} 
-                className={`sm:w-6 sm:h-6 ${item.isCenter && !isActive ? 'text-white' : ''}`}
+                size={item.isCenter ? 22 : 20} 
+                className={`transition-transform duration-200 ${isActive && !item.isCenter ? 'scale-110' : ''} group-hover:scale-110`}
                 aria-hidden="true"
               />
-              <span className={`text-xs mt-1 ${item.isCenter ? 'text-white' : ''}`}>
+              <span className={`text-xs mt-1 font-medium transition-all duration-200 ${
+                item.isCenter && isActive ? 'text-accent-foreground' : ''
+              }`}>
                 {item.label}
               </span>
+              
+              {/* Active indicator for non-center items */}
+              {isActive && !item.isCenter && (
+                <div className="absolute -top-1 w-1 h-1 bg-accent rounded-full animate-pulse-dot" />
+              )}
             </button>
           );
         })}
