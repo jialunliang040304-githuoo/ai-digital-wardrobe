@@ -1,5 +1,7 @@
 # 🎯 AI数字衣柜 - 3D试穿应用
 
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/jialunliang040304-githuoo/ai-digital-wardrobe)
+
 基于React + AI的现代化3D数字衣柜应用，支持AI人体建模、服装生成和智能试穿。
 
 ## ✨ 核心功能
@@ -69,15 +71,10 @@ cd backend && npm run dev
 
 ### Vercel部署
 
-1. **推送到GitHub**
-```bash
-git add .
-git commit -m "Initial commit"
-git remote add origin <your-github-repo-url>
-git push -u origin main
-```
+1. **一键部署**
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/jialunliang040304-githuoo/ai-digital-wardrobe)
 
-2. **在Vercel中导入项目**
+2. **手动部署**
 - 访问 [vercel.com](https://vercel.com)
 - 连接GitHub账户
 - 导入你的仓库
@@ -85,12 +82,14 @@ git push -u origin main
 3. **配置环境变量**
 在Vercel项目设置中添加：
 ```
-DATABASE_URL=your-production-database-url
+DATABASE_URL=file:./dev.db
 JWT_SECRET=your-production-jwt-secret
 OPENAI_API_KEY=your-openai-api-key
 REPLICATE_API_TOKEN=your-replicate-token
 STABILITY_API_KEY=your-stability-api-key
 ```
+
+详细部署指南请查看 [DEPLOYMENT.md](DEPLOYMENT.md)
 
 ## 📱 使用指南
 
