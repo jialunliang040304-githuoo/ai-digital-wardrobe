@@ -15,10 +15,13 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    sourcemap: true,
+    sourcemap: false,
     rollupOptions: {
-      external: (id) => {
-        return id.includes('.test.') || id.includes('/test/')
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          three: ['three', '@react-three/fiber', '@react-three/drei']
+        }
       }
     }
   }
