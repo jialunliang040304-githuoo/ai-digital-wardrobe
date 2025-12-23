@@ -52,7 +52,7 @@ model ClothingItem {
   type      String
   meshData  String?
   texture   String?
-  tags      String
+  tags      String   @default("")
   userId    String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -68,7 +68,7 @@ model SavedLook {
   name       String
   userId     String
   screenshot String?
-  tags       String
+  tags       String   @default("")
   isPublic   Boolean  @default(false)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt

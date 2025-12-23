@@ -13,62 +13,100 @@ const createClothingSchema = z.object({
   type: z.string(),
   meshData: z.string().optional(),
   texture: z.string().optional(),
-  tags: z.array(z.string()).default([])
+  tags: z.array(z.string()).default([]).transform(tags => tags.join(','))
 });
 
 router.use(auth);
 
 router.get('/', async (req, res) => {
-  const { category, search } = req.query;
-  
-  const items = await prisma.clothingItem.findMany({
-    where: {
-      userId: req.userId,
-      ...(category && { category: category as string }),
-      ...(search && {
-        OR: [
-          { name: { contains: search as string } },
-          { tags: { hasSome: [search as string] } }
-        ]
-      })
-    },
-    orderBy: { createdAt: 'desc' }
-  });
+  try {
+    const { category, search } = req.query;
+    
+    let whereClause: any = {
+      userId: req.userId
+    };
 
-  res.json(items);
+    if (category) {
+      whereClause.category = category as string;
+    }
+
+    if (search) {
+      whereClause.OR = [
+        { name: { contains: search as string, mode: 'insensitive' } },
+        { tags: { contains: search as string, mode: 'insensitive' } }
+      ];
+    }
+
+    const items = await prisma.clothingItem.findMany({
+      where: whereClause,
+      orderBy: { createdAt: 'desc' }
+    });
+
+    // 转换tags字符串为数组
+    const itemsWithArrayTags = items.map(item => ({
+      ...item,
+      tags: item.tags ? item.tags.split(',').filter(tag => tag.trim()) : []
+    }));
+
+    res.json(itemsWithArrayTags);
+  } catch (error) {
+    console.error('获取服装列表失败:', error);
+    res.status(500).json({ error: '获取服装列表失败' });
+  }
 });
 
 router.post('/', validateRequest(createClothingSchema), async (req, res) => {
-  const item = await prisma.clothingItem.create({
-    data: { ...req.body, userId: req.userId }
-  });
+  try {
+    const item = await prisma.clothingItem.create({
+      data: { ...req.body, userId: req.userId }
+    });
 
-  res.json(item);
+    // 转换tags字符串为数组返回
+    const itemWithArrayTags = {
+      ...item,
+      tags: item.tags ? item.tags.split(',').filter(tag => tag.trim()) : []
+    };
+
+    res.json(itemWithArrayTags);
+  } catch (error) {
+    console.error('创建服装失败:', error);
+    res.status(500).json({ error: '创建服装失败' });
+  }
 });
 
 router.put('/:id', validateRequest(createClothingSchema), async (req, res) => {
-  const item = await prisma.clothingItem.updateMany({
-    where: { id: req.params.id, userId: req.userId },
-    data: req.body
-  });
+  try {
+    const item = await prisma.clothingItem.updateMany({
+      where: { id: req.params.id, userId: req.userId },
+      data: req.body
+    });
 
-  if (item.count === 0) {
-    return res.status(404).json({ error: '服装物品未找到' });
+    if (item.count === 0) {
+      return res.status(404).json({ error: '服装物品未找到' });
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('更新服装失败:', error);
+    res.status(500).json({ error: '更新服装失败' });
   }
-
-  res.json({ success: true });
 });
 
 router.delete('/:id', async (req, res) => {
-  const item = await prisma.clothingItem.deleteMany({
-    where: { id: req.params.id, userId: req.userId }
-  });
+  try {
+    const item = await prisma.clothingItem.deleteMany({
+      where: { id: req.params.id, userId: req.userId }
+    });
 
-  if (item.count === 0) {
-    return res.status(404).json({ error: '服装物品未找到' });
+    if (item.count === 0) {
+      return res.status(404).json({ error: '服装物品未找到' });
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('删除服装失败:', error);
+    res.status(500).json({ error: '删除服装失败' });
   }
-
-  res.json({ success: true });
 });
 
 export { router as clothingRouter };
