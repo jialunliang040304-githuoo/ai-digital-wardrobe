@@ -28,7 +28,7 @@ router.get('/', async (req, res) => {
       ...(search && {
         OR: [
           { name: { contains: search as string } },
-          { tags: { has: search as string } }
+          { tags: { hasSome: [search as string] } }
         ]
       })
     },

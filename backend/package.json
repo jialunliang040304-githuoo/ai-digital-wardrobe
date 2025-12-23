@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "tsc && npx prisma generate",
+    "build": "tsc --skipLibCheck && npx prisma generate",
     "start": "node dist/server.js",
     "postinstall": "npx prisma generate"
   },

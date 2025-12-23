@@ -10,7 +10,7 @@ const router = Router();
 
 // 配置文件上传
 const upload = multer({
-  memory: true,
+  storage: multer.memoryStorage(),
   limits: { fileSize: 50 * 1024 * 1024 }, // 50MB
   fileFilter: (req, file, cb) => {
     if (file.mimetype.startsWith('image/') || file.mimetype.startsWith('video/')) {
@@ -54,7 +54,7 @@ router.post('/generate-body-model',
       
       // 转换为File对象
       const imageFiles = files.map(file => 
-        new File([file.buffer], file.originalname, { type: file.mimetype })
+        new File([new Uint8Array(file.buffer)], file.originalname, { type: file.mimetype })
       );
 
       const bodyModel = await aiGateway.generateBodyModel(imageFiles, options);
@@ -92,7 +92,7 @@ router.post('/generate-clothing-model',
 
       const options = req.body;
       
-      const imageFile = new File([file.buffer], file.originalname, { type: file.mimetype });
+      const imageFile = new File([new Uint8Array(file.buffer)], file.originalname, { type: file.mimetype });
       const clothingModel = await aiGateway.generateClothingModel(imageFile, options);
       
       res.json({
