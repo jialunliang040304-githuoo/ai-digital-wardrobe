@@ -15,6 +15,11 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    sourcemap: true
+    sourcemap: true,
+    rollupOptions: {
+      external: (id) => {
+        return id.includes('.test.') || id.includes('/test/')
+      }
+    }
   }
 })
