@@ -1,118 +1,152 @@
-@import url('https://fonts.googleapis.com/css2?family=Calistoga&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@400;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Design System CSS Custom Properties */
+/* Kinetic Typography Design System */
 :root {
-  /* Colors */
-  --background: #FAFAFA;
-  --foreground: #0F172A;
-  --muted: #F1F5F9;
-  --muted-foreground: #64748B;
-  --accent: #0052FF;
-  --accent-secondary: #4D7CFF;
-  --accent-foreground: #FFFFFF;
-  --border: #E2E8F0;
-  --card: #FFFFFF;
-  --ring: #0052FF;
+  /* Core Colors - High Contrast Brutalism */
+  --background: #000000;
+  --foreground: #FFFFFF;
+  --accent: #00FF00;
+  --accent-alt: #FF0000;
+  --accent-blue: #0000FF;
+  --accent-yellow: #FFFF00;
+  --accent-magenta: #FF00FF;
+  --accent-cyan: #00FFFF;
   
-  /* Shadows */
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
-  --shadow-md: 0 4px 6px rgba(0,0,0,0.07);
-  --shadow-lg: 0 10px 15px rgba(0,0,0,0.08);
-  --shadow-xl: 0 20px 25px rgba(0,0,0,0.1);
-  --shadow-accent: 0 4px 14px rgba(0,82,255,0.25);
-  --shadow-accent-lg: 0 8px 24px rgba(0,82,255,0.35);
+  /* Inverted Colors */
+  --background-inverted: #FFFFFF;
+  --foreground-inverted: #000000;
+  
+  /* Typography Scale - Viewport Based */
+  --text-xs: clamp(0.75rem, 2vw, 1rem);
+  --text-sm: clamp(1rem, 3vw, 1.25rem);
+  --text-base: clamp(1.25rem, 4vw, 1.5rem);
+  --text-lg: clamp(1.5rem, 5vw, 2rem);
+  --text-xl: clamp(2rem, 6vw, 3rem);
+  --text-2xl: clamp(3rem, 8vw, 4rem);
+  --text-3xl: clamp(4rem, 10vw, 6rem);
+  --text-4xl: clamp(6rem, 12vw, 8rem);
+  --text-5xl: clamp(8rem, 15vw, 12rem);
+  --text-6xl: clamp(12rem, 20vw, 16rem);
+  
+  /* Digital Decorations */
+  --decoration-size: clamp(2rem, 8vw, 6rem);
+  --decoration-opacity: 0.8;
 }
 
-/* Typography */
+/* Typography Classes */
 .font-display {
-  font-family: "Calistoga", Georgia, serif;
-}
-
-.font-ui {
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: "Bebas Neue", Arial Black, sans-serif;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .font-mono {
   font-family: "JetBrains Mono", monospace;
+  font-weight: 400;
 }
 
-/* Gradient Text Effect */
-.gradient-text {
-  background: linear-gradient(to right, var(--accent), var(--accent-secondary));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+.font-mono-bold {
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 700;
 }
 
-.gradient-underline {
-  position: relative;
+/* Viewport Typography */
+.text-vw-xs { font-size: var(--text-xs); }
+.text-vw-sm { font-size: var(--text-sm); }
+.text-vw-base { font-size: var(--text-base); }
+.text-vw-lg { font-size: var(--text-lg); }
+.text-vw-xl { font-size: var(--text-xl); }
+.text-vw-2xl { font-size: var(--text-2xl); }
+.text-vw-3xl { font-size: var(--text-3xl); }
+.text-vw-4xl { font-size: var(--text-4xl); }
+.text-vw-5xl { font-size: var(--text-5xl); }
+.text-vw-6xl { font-size: var(--text-6xl); }
+
+/* Digital Decorations */
+.decoration-number {
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 700;
+  font-size: var(--decoration-size);
+  opacity: var(--decoration-opacity);
+  line-height: 0.8;
+  user-select: none;
+  pointer-events: none;
 }
 
-.gradient-underline::after {
-  content: '';
-  position: absolute;
-  bottom: -0.25rem;
-  left: 0;
-  height: 0.75rem;
-  width: 100%;
-  border-radius: 0.125rem;
-  background: linear-gradient(to right, rgba(0, 82, 255, 0.15), rgba(77, 124, 255, 0.1));
+/* Color Inversion Effects */
+.invert-colors {
+  background-color: var(--foreground);
+  color: var(--background);
 }
 
-/* Signature Gradient */
-.bg-gradient-accent {
-  background: linear-gradient(to right, var(--accent), var(--accent-secondary));
+.invert-colors-alt {
+  background-color: var(--background-inverted);
+  color: var(--foreground-inverted);
 }
 
-.bg-gradient-accent-diagonal {
-  background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
+/* Hard Shadows - Brutalist Style */
+.shadow-brutal {
+  box-shadow: 8px 8px 0px var(--accent);
 }
 
-/* Textures */
-.dot-pattern {
-  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-  background-size: 32px 32px;
+.shadow-brutal-red {
+  box-shadow: 8px 8px 0px var(--accent-alt);
 }
 
-.radial-glow {
-  background: radial-gradient(circle at center, rgba(0, 82, 255, 0.06), transparent 70%);
+.shadow-brutal-blue {
+  box-shadow: 8px 8px 0px var(--accent-blue);
 }
 
-/* Animations */
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
+.shadow-brutal-yellow {
+  box-shadow: 8px 8px 0px var(--accent-yellow);
 }
 
-@keyframes pulse-dot {
-  0%, 100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.3); opacity: 0.7; }
+/* Kinetic Animations */
+@keyframes marquee-left {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
 }
 
-@keyframes rotate-slow {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+@keyframes marquee-right {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
 }
 
-.animate-float {
-  animation: float 5s ease-in-out infinite;
+@keyframes glitch {
+  0%, 100% { transform: translate(0); }
+  20% { transform: translate(-2px, 2px); }
+  40% { transform: translate(-2px, -2px); }
+  60% { transform: translate(2px, 2px); }
+  80% { transform: translate(2px, -2px); }
 }
 
-.animate-float-delayed {
-  animation: float 4s ease-in-out infinite;
-  animation-delay: -2s;
+@keyframes color-shift {
+  0% { color: var(--accent); }
+  25% { color: var(--accent-alt); }
+  50% { color: var(--accent-blue); }
+  75% { color: var(--accent-yellow); }
+  100% { color: var(--accent); }
 }
 
-.animate-pulse-dot {
-  animation: pulse-dot 2s ease-in-out infinite;
+.animate-marquee-left {
+  animation: marquee-left 20s linear infinite;
 }
 
-.animate-rotate-slow {
-  animation: rotate-slow 60s linear infinite;
+.animate-marquee-right {
+  animation: marquee-right 25s linear infinite;
+}
+
+.animate-glitch {
+  animation: glitch 0.3s ease-in-out infinite;
+}
+
+.animate-color-shift {
+  animation: color-shift 3s ease-in-out infinite;
 }
 
 /* 屏幕阅读器专用样式 */
@@ -197,7 +231,7 @@
 
 @layer base {
   html {
-    font-family: "Inter", system-ui, sans-serif;
+    font-family: "JetBrains Mono", monospace;
   }
   
   body {
@@ -205,136 +239,142 @@
     color: var(--foreground);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden; /* Prevent horizontal scroll from marquees */
   }
 
   * {
     box-sizing: border-box;
   }
 
-  /* 移动端优化 */
+  /* Mobile optimizations */
   input, textarea, select {
-    @apply text-base; /* 防止iOS缩放 */
+    @apply text-base;
   }
 
-  /* 触摸优化 */
+  /* Touch optimizations */
   button, [role="button"] {
     @apply min-h-touch min-w-touch;
     touch-action: manipulation;
   }
 
-  /* 防止双击缩放 */
   * {
     touch-action: manipulation;
   }
 
-  /* 优化滚动性能 */
   .scroll-smooth {
     -webkit-overflow-scrolling: touch;
     scroll-behavior: smooth;
   }
 
-  /* 触摸反馈 */
   .touch-feedback:active {
-    transform: scale(0.98);
+    transform: scale(0.95);
     transition: transform 0.1s ease-in-out;
   }
 }
 
 @layer components {
-  /* Modern Design System Components */
+  /* Kinetic Typography Components */
   
-  /* Section Labels */
-  .section-label {
-    @apply inline-flex items-center gap-3 rounded-full px-5 py-2;
-    border: 1px solid rgba(0, 82, 255, 0.3);
-    background: rgba(0, 82, 255, 0.05);
-  }
-  
-  .section-label-dot {
-    @apply h-2 w-2 rounded-full;
+  /* Brutalist Buttons */
+  .btn-brutal {
+    @apply font-display text-vw-base px-6 py-4 border-4 border-current transition-all duration-150;
     background-color: var(--accent);
+    color: var(--background);
+    border-color: var(--background);
+    text-transform: uppercase;
   }
   
-  .section-label-text {
-    @apply font-mono text-xs uppercase tracking-[0.15em];
-    color: var(--accent);
+  .btn-brutal:hover {
+    transform: translate(-4px, -4px);
+    box-shadow: 8px 8px 0px var(--background);
   }
   
-  /* Modern Buttons */
-  .btn-primary-modern {
-    @apply h-12 px-6 rounded-xl font-medium transition-all duration-200;
-    background: linear-gradient(to right, var(--accent), var(--accent-secondary));
-    color: var(--accent-foreground);
-    box-shadow: var(--shadow-sm);
+  .btn-brutal:active {
+    transform: translate(0, 0);
+    box-shadow: 4px 4px 0px var(--background);
   }
   
-  .btn-primary-modern:hover {
-    transform: translateY(-0.5px);
-    box-shadow: var(--shadow-accent);
-    filter: brightness(1.1);
-  }
-  
-  .btn-primary-modern:active {
-    transform: scale(0.98);
-  }
-  
-  .btn-secondary-modern {
-    @apply h-12 px-6 rounded-xl font-medium transition-all duration-200 border;
-    background: transparent;
-    color: var(--foreground);
-    border-color: var(--border);
-  }
-  
-  .btn-secondary-modern:hover {
-    background: var(--muted);
-    border-color: rgba(0, 82, 255, 0.3);
-    box-shadow: var(--shadow-sm);
-  }
-  
-  /* Modern Cards */
-  .card-modern {
-    @apply rounded-xl border p-6;
-    background: var(--card);
-    border-color: var(--border);
-    box-shadow: var(--shadow-md);
-  }
-  
-  .card-modern:hover {
-    box-shadow: var(--shadow-xl);
-    background: linear-gradient(to bottom right, rgba(0, 82, 255, 0.03), transparent), var(--card);
-  }
-  
-  .card-featured {
-    @apply rounded-xl p-[2px];
-    background: linear-gradient(to bottom right, var(--accent), var(--accent-secondary));
-  }
-  
-  .card-featured-inner {
-    @apply h-full w-full rounded-[10px] p-6;
-    background: var(--card);
-  }
-  
-  /* Inverted Sections */
-  .section-inverted {
-    background: var(--foreground);
+  .btn-brutal-red {
+    background-color: var(--accent-alt);
     color: var(--background);
   }
   
-  .section-inverted .dot-pattern {
-    background-image: radial-gradient(circle, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  .btn-brutal-blue {
+    background-color: var(--accent-blue);
+    color: var(--foreground);
   }
   
-  /* Legacy compatibility */
+  /* Hard Edge Cards */
+  .card-brutal {
+    @apply border-4 border-current p-6 transition-all duration-150;
+    background-color: var(--background);
+    border-color: var(--foreground);
+  }
+  
+  .card-brutal:hover {
+    transform: translate(-4px, -4px);
+    box-shadow: 8px 8px 0px var(--accent);
+  }
+  
+  .card-brutal-inverted {
+    background-color: var(--foreground);
+    color: var(--background);
+    border-color: var(--background);
+  }
+  
+  .card-brutal-inverted:hover {
+    box-shadow: 8px 8px 0px var(--accent-alt);
+  }
+  
+  /* Marquee Containers */
+  .marquee-container {
+    @apply overflow-hidden whitespace-nowrap;
+    mask-image: linear-gradient(
+      to right,
+      transparent 0%,
+      black 10%,
+      black 90%,
+      transparent 100%
+    );
+  }
+  
+  /* Digital Decoration Positioning */
+  .decoration-absolute {
+    position: absolute;
+    z-index: -1;
+  }
+  
+  .decoration-top-left {
+    top: -2rem;
+    left: -2rem;
+  }
+  
+  .decoration-top-right {
+    top: -2rem;
+    right: -2rem;
+  }
+  
+  .decoration-bottom-left {
+    bottom: -2rem;
+    left: -2rem;
+  }
+  
+  .decoration-bottom-right {
+    bottom: -2rem;
+    right: -2rem;
+  }
+  
+  /* Legacy compatibility - Updated for Kinetic Typography */
   .container-mobile {
     @apply max-w-md mx-auto px-4;
   }
   
   .btn-primary {
-    @apply btn-primary-modern;
+    @apply btn-brutal;
   }
   
   .btn-secondary {
-    @apply btn-secondary-modern;
+    @apply btn-brutal-red;
   }
 
   .touch-item {
@@ -347,7 +387,6 @@
     transition: transform 0.1s ease-in-out;
   }
 
-  /* 隐藏滚动条 */
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
@@ -357,7 +396,6 @@
     display: none;
   }
 
-  /* 文本截断 */
   .line-clamp-1 {
     overflow: hidden;
     display: -webkit-box;

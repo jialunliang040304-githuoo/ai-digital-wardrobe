@@ -19,18 +19,18 @@ const Button: React.FC<ButtonProps> = ({
   disabled,
   ...props
 }) => {
-  const baseClasses = 'inline-flex items-center justify-center gap-2 font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none';
+  const baseClasses = 'font-display uppercase tracking-wide border-4 transition-all duration-150 focus-visible:outline-none disabled:opacity-50 disabled:pointer-events-none';
   
   const variants = {
-    primary: 'bg-gradient-accent text-accent-foreground shadow-sm hover:-translate-y-0.5 hover:shadow-accent hover:brightness-110 active:scale-[0.98]',
-    secondary: 'border border-border bg-transparent text-foreground hover:bg-muted hover:border-accent/30 hover:shadow-sm',
-    ghost: 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+    primary: 'bg-accent text-background border-background hover:translate-x-[-4px] hover:translate-y-[-4px] hover:shadow-brutal-white active:translate-x-0 active:translate-y-0 active:shadow-brutal-white/50',
+    secondary: 'bg-accent-alt text-background border-background hover:translate-x-[-4px] hover:translate-y-[-4px] hover:shadow-brutal-white active:translate-x-0 active:translate-y-0',
+    ghost: 'bg-transparent text-foreground border-foreground hover:bg-foreground hover:text-background'
   };
   
   const sizes = {
-    sm: 'h-10 px-4 text-sm rounded-lg',
-    md: 'h-12 px-6 text-base rounded-xl',
-    lg: 'h-14 px-8 text-lg rounded-xl'
+    sm: 'px-4 py-2 text-vw-sm',
+    md: 'px-6 py-4 text-vw-base',
+    lg: 'px-8 py-6 text-vw-lg'
   };
   
   const classes = `${baseClasses} ${variants[variant]} ${sizes[size]} ${className}`;
@@ -42,14 +42,14 @@ const Button: React.FC<ButtonProps> = ({
       {...props}
     >
       {loading ? (
-        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+        <div className="w-4 h-4 border-2 border-current border-t-transparent animate-spin" />
       ) : (
         <>
           {children}
           {showArrow && (
             <ArrowRight 
               size={16} 
-              className="transition-transform duration-200 group-hover:translate-x-1" 
+              className="ml-2 transition-transform duration-150 group-hover:translate-x-1" 
             />
           )}
         </>

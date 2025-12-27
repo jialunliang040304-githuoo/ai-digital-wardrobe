@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useAppContext } from '../../context/AppContext';
 import { FeedPost } from '../../types';
-import SectionLabel from '../UI/SectionLabel';
 import Card from '../UI/Card';
 import Button from '../UI/Button';
+import Marquee from '../UI/Marquee';
+import AvatarScene from '../3D/AvatarScene';
 import { Heart, MessageCircle, Share2, Sparkles, TrendingUp } from 'lucide-react';
 
 interface HomePageProps {
@@ -34,7 +35,7 @@ const mockPosts: FeedPost[] = [
   {
     id: '2',
     userId: 'user2',
-    username: '穿搭博主Anna',
+    username: '穿搭博主ANNA',
     userAvatar: '',
     look: {
       id: 'look2',
@@ -68,63 +69,6 @@ const mockPosts: FeedPost[] = [
     likes: 256,
     isLiked: false,
     createdAt: new Date()
-  },
-  {
-    id: '4',
-    userId: 'user4',
-    username: '复古爱好者',
-    userAvatar: '',
-    look: {
-      id: 'look4',
-      name: '复古文艺范',
-      userId: 'user4',
-      clothing: { accessories: [] },
-      screenshot: '',
-      tags: ['复古', '文艺'],
-      isPublic: true,
-      createdAt: new Date()
-    },
-    likes: 67,
-    isLiked: false,
-    createdAt: new Date()
-  },
-  {
-    id: '5',
-    userId: 'user5',
-    username: '极简主义者',
-    userAvatar: '',
-    look: {
-      id: 'look5',
-      name: '极简黑白配',
-      userId: 'user5',
-      clothing: { accessories: [] },
-      screenshot: '',
-      tags: ['极简', '黑白'],
-      isPublic: true,
-      createdAt: new Date()
-    },
-    likes: 145,
-    isLiked: true,
-    createdAt: new Date()
-  },
-  {
-    id: '6',
-    userId: 'user6',
-    username: '甜美女孩',
-    userAvatar: '',
-    look: {
-      id: 'look6',
-      name: '甜美可爱风',
-      userId: 'user6',
-      clothing: { accessories: [] },
-      screenshot: '',
-      tags: ['甜美', '可爱'],
-      isPublic: true,
-      createdAt: new Date()
-    },
-    likes: 203,
-    isLiked: false,
-    createdAt: new Date()
   }
 ];
 
@@ -132,44 +76,16 @@ const HomeFeed: React.FC<HomePageProps> = ({ isActive }) => {
   const { state } = useAppContext();
   const [posts, setPosts] = useState<FeedPost[]>([]);
   const [loading, setLoading] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
-  const [page, setPage] = useState(1);
 
   useEffect(() => {
-    // 初始加载数据
     if (isActive && posts.length === 0) {
       setLoading(true);
       setTimeout(() => {
         setPosts(mockPosts);
         setLoading(false);
-        setPage(1);
       }, 500);
     }
   }, [isActive, posts.length]);
-
-  const handleLoadMore = () => {
-    if (loading || !hasMore) return;
-    
-    setLoading(true);
-    // 模拟加载更多数据
-    setTimeout(() => {
-      const morePosts = mockPosts.map((post, index) => ({
-        ...post,
-        id: `${post.id}_page${page}_${index}`,
-        likes: Math.floor(Math.random() * 300),
-        username: `${post.username}_${page}`
-      }));
-      
-      setPosts(prev => [...prev, ...morePosts]);
-      setPage(prev => prev + 1);
-      setLoading(false);
-      
-      // 模拟最多加载3页
-      if (page >= 3) {
-        setHasMore(false);
-      }
-    }, 1000);
-  };
 
   const handleLike = (postId: string) => {
     setPosts(prev => prev.map(post => 
@@ -184,30 +100,48 @@ const HomeFeed: React.FC<HomePageProps> = ({ isActive }) => {
   };
 
   return (
-    <div className="min-h-screen" style={{ background: 'var(--background)' }}>
-      {/* Hero Section */}
-      <section className="relative py-20 px-4 overflow-hidden">
-        {/* Background Elements */}
-        <div className="absolute inset-0 radial-glow opacity-30" />
-        <div className="absolute top-10 right-10 w-32 h-32 bg-gradient-accent rounded-full blur-3xl opacity-20 animate-float" />
-        <div className="absolute bottom-20 left-10 w-24 h-24 bg-accent-secondary rounded-full blur-2xl opacity-15 animate-float-delayed" />
+    <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
+      {/* Hero Section with Kinetic Typography */}
+      <section className="relative py-20 px-4">
+        {/* Digital Decorations */}
+        <div className="decoration-absolute decoration-top-left decoration-number animate-glitch text-accent">
+          01
+        </div>
+        <div className="decoration-absolute decoration-top-right decoration-number animate-color-shift text-accent-alt">
+          3D
+        </div>
+        <div className="decoration-absolute decoration-bottom-left decoration-number text-accent-blue">
+          AI
+        </div>
+        <div className="decoration-absolute decoration-bottom-right decoration-number animate-glitch text-accent-yellow">
+          24
+        </div>
         
         <div className="max-w-6xl mx-auto text-center relative z-10">
-          <SectionLabel animated className="mb-6">
-            AI数字衣柜
-          </SectionLabel>
+          {/* Marquee Label */}
+          <div className="mb-8">
+            <Marquee speed={30} className="font-mono text-vw-sm text-accent">
+              <span className="mx-8">AI数字衣柜</span>
+              <span className="mx-8">3D试穿体验</span>
+              <span className="mx-8">智能穿搭推荐</span>
+              <span className="mx-8">虚拟时尚</span>
+            </Marquee>
+          </div>
           
-          <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl mb-6 text-foreground">
+          <h1 className="font-display text-vw-4xl mb-8 text-foreground leading-none">
             发现你的
-            <span className="gradient-text gradient-underline"> 专属风格</span>
+            <br />
+            <span className="text-accent animate-color-shift">专属风格</span>
           </h1>
           
-          <p className="font-ui text-lg sm:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto leading-relaxed">
-            通过AI技术打造个性化3D试穿体验，探索无限穿搭可能性
+          <p className="font-mono text-vw-base text-foreground mb-12 max-w-2xl mx-auto uppercase tracking-wider">
+            通过AI技术打造个性化3D试穿体验
+            <br />
+            探索无限穿搭可能性
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button variant="primary" size="lg" showArrow>
+          <div className="flex flex-col sm:flex-row gap-6 justify-center">
+            <Button variant="primary" size="lg">
               开始试穿
             </Button>
             <Button variant="secondary" size="lg">
@@ -217,67 +151,92 @@ const HomeFeed: React.FC<HomePageProps> = ({ isActive }) => {
         </div>
       </section>
 
-      {/* Stats Section - Inverted */}
-      <section className="section-inverted dot-pattern py-16 px-4">
-        <div className="max-w-6xl mx-auto">
+      {/* Stats Section - Color Inverted */}
+      <section className="invert-colors py-16 px-4 relative">
+        {/* Background Marquees */}
+        <div className="absolute inset-0 opacity-10">
+          <Marquee direction="left" speed={20} className="font-display text-vw-6xl">
+            <span className="mx-16">DIGITAL</span>
+            <span className="mx-16">WARDROBE</span>
+            <span className="mx-16">3D</span>
+            <span className="mx-16">AI</span>
+          </Marquee>
+        </div>
+        
+        <div className="max-w-6xl mx-auto relative z-10">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             <div>
-              <div className="text-3xl font-display mb-2 text-white">10K+</div>
-              <div className="text-sm font-ui text-white/80">活跃用户</div>
+              <div className="font-display text-vw-3xl mb-2 text-accent">10K+</div>
+              <div className="font-mono text-vw-sm uppercase tracking-wider">活跃用户</div>
             </div>
             <div>
-              <div className="text-3xl font-display mb-2 text-white">50K+</div>
-              <div className="text-sm font-ui text-white/80">穿搭作品</div>
+              <div className="font-display text-vw-3xl mb-2 text-accent-alt">50K+</div>
+              <div className="font-mono text-vw-sm uppercase tracking-wider">穿搭作品</div>
             </div>
             <div>
-              <div className="text-3xl font-display mb-2 text-white">100K+</div>
-              <div className="text-sm font-ui text-white/80">服装单品</div>
+              <div className="font-display text-vw-3xl mb-2 text-accent-blue">100K+</div>
+              <div className="font-mono text-vw-sm uppercase tracking-wider">服装单品</div>
             </div>
             <div>
-              <div className="text-3xl font-display mb-2 text-white">1M+</div>
-              <div className="text-sm font-ui text-white/80">试穿次数</div>
+              <div className="font-display text-vw-3xl mb-2 text-accent-yellow">1M+</div>
+              <div className="font-mono text-vw-sm uppercase tracking-wider">试穿次数</div>
             </div>
           </div>
         </div>
       </section>
 
       {/* Featured Posts Section */}
-      <section className="py-20 px-4">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <SectionLabel className="mb-4">
-              精选作品
-            </SectionLabel>
-            <h2 className="font-display text-3xl lg:text-4xl mb-4 text-foreground">
-              今日<span className="gradient-text">热门</span>穿搭
-            </h2>
-            <p className="font-ui text-muted-foreground text-lg max-w-2xl mx-auto">
-              发现社区中最受欢迎的3D穿搭作品，获取灵感启发
-            </p>
-          </div>
+      <section className="py-20 px-4 relative">
+        {/* Section Header with Marquee */}
+        <div className="text-center mb-16">
+          <Marquee direction="right" speed={25} className="font-mono text-vw-sm text-accent mb-8">
+            <span className="mx-8">精选作品</span>
+            <span className="mx-8">今日热门</span>
+            <span className="mx-8">社区推荐</span>
+            <span className="mx-8">3D穿搭</span>
+          </Marquee>
+          
+          <h2 className="font-display text-vw-3xl mb-8 text-foreground leading-none">
+            今日<span className="text-accent-alt">热门</span>穿搭
+          </h2>
+          
+          <p className="font-mono text-vw-base text-foreground max-w-2xl mx-auto uppercase tracking-wide">
+            发现社区中最受欢迎的3D穿搭作品
+          </p>
+        </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            {posts.slice(0, 6).map((post, index) => (
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+            {posts.map((post, index) => (
               <Card 
                 key={post.id} 
-                variant={index === 0 ? 'featured' : 'default'}
-                className="group"
+                variant={index === 0 ? 'inverted' : 'default'}
+                className="group relative"
               >
+                {/* Digital decoration for featured post */}
+                {index === 0 && (
+                  <div className="absolute -top-4 -right-4 font-display text-vw-lg text-accent-alt animate-glitch">
+                    HOT
+                  </div>
+                )}
+                
                 <div className="space-y-4">
                   {/* Post Header */}
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gradient-accent rounded-full flex items-center justify-center">
-                      <span className="text-white font-medium text-sm">
+                    <div className="w-10 h-10 bg-accent border-2 border-background flex items-center justify-center">
+                      <span className="font-display text-background text-sm">
                         {post.username.charAt(0)}
                       </span>
                     </div>
                     <div>
-                      <div className="font-medium text-foreground">{post.username}</div>
-                      <div className="text-xs text-muted-foreground">2小时前</div>
+                      <div className="font-mono font-bold text-sm uppercase tracking-wide">
+                        {post.username}
+                      </div>
+                      <div className="font-mono text-xs opacity-70">2小时前</div>
                     </div>
                     {index === 0 && (
                       <div className="ml-auto">
-                        <div className="flex items-center gap-1 bg-accent/10 text-accent px-2 py-1 rounded-full text-xs font-medium">
+                        <div className="flex items-center gap-1 bg-accent-alt text-background px-2 py-1 font-mono text-xs font-bold uppercase">
                           <TrendingUp size={12} />
                           热门
                         </div>
@@ -285,23 +244,24 @@ const HomeFeed: React.FC<HomePageProps> = ({ isActive }) => {
                     )}
                   </div>
 
-                  {/* Post Content */}
-                  <div className="aspect-square bg-muted rounded-lg flex items-center justify-center relative overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-br from-accent/20 to-accent-secondary/20" />
-                    <Sparkles size={48} className="text-accent/60" />
-                    <div className="absolute bottom-2 left-2 bg-black/50 text-white px-2 py-1 rounded text-xs">
+                  {/* Post Content - 3D Avatar Scene */}
+                  <div className="aspect-square border-4 border-current relative overflow-hidden">
+                    <AvatarScene className="w-full h-full" />
+                    <div className="absolute bottom-2 left-2 bg-accent text-background px-2 py-1 font-mono text-xs font-bold uppercase">
                       3D试穿
                     </div>
                   </div>
 
                   {/* Post Info */}
                   <div>
-                    <h3 className="font-medium text-foreground mb-2">{post.look.name}</h3>
-                    <div className="flex flex-wrap gap-1 mb-3">
+                    <h3 className="font-mono font-bold text-sm uppercase tracking-wide mb-2">
+                      {post.look.name}
+                    </h3>
+                    <div className="flex flex-wrap gap-2 mb-3">
                       {post.look.tags.map(tag => (
                         <span 
                           key={tag}
-                          className="bg-muted text-muted-foreground px-2 py-1 rounded-full text-xs"
+                          className="bg-foreground text-background px-2 py-1 font-mono text-xs font-bold uppercase border-2 border-current"
                         >
                           #{tag}
                         </span>
@@ -310,24 +270,24 @@ const HomeFeed: React.FC<HomePageProps> = ({ isActive }) => {
                   </div>
 
                   {/* Post Actions */}
-                  <div className="flex items-center justify-between pt-2 border-t border-border">
+                  <div className="flex items-center justify-between pt-4 border-t-4 border-current">
                     <div className="flex items-center gap-4">
                       <button 
                         onClick={() => handleLike(post.id)}
-                        className="flex items-center gap-1 text-muted-foreground hover:text-accent transition-colors"
+                        className="flex items-center gap-2 font-mono text-sm font-bold uppercase tracking-wide hover:text-accent transition-colors"
                       >
                         <Heart 
                           size={16} 
                           className={post.isLiked ? 'fill-accent text-accent' : ''} 
                         />
-                        <span className="text-sm">{post.likes}</span>
+                        <span>{post.likes}</span>
                       </button>
-                      <button className="flex items-center gap-1 text-muted-foreground hover:text-accent transition-colors">
+                      <button className="flex items-center gap-2 font-mono text-sm font-bold uppercase tracking-wide hover:text-accent-alt transition-colors">
                         <MessageCircle size={16} />
-                        <span className="text-sm">12</span>
+                        <span>12</span>
                       </button>
                     </div>
-                    <button className="text-muted-foreground hover:text-accent transition-colors">
+                    <button className="hover:text-accent-blue transition-colors">
                       <Share2 size={16} />
                     </button>
                   </div>
@@ -336,18 +296,25 @@ const HomeFeed: React.FC<HomePageProps> = ({ isActive }) => {
             ))}
           </div>
 
-          {hasMore && (
-            <div className="text-center">
-              <Button 
-                variant="secondary" 
-                onClick={handleLoadMore}
-                loading={loading}
-              >
-                {loading ? '加载中...' : '查看更多'}
-              </Button>
-            </div>
-          )}
+          <div className="text-center">
+            <Button 
+              variant="secondary" 
+              loading={loading}
+            >
+              {loading ? '加载中...' : '查看更多'}
+            </Button>
+          </div>
         </div>
+      </section>
+
+      {/* Bottom Marquee */}
+      <section className="py-8">
+        <Marquee speed={40} className="font-display text-vw-2xl text-accent opacity-50">
+          <span className="mx-12">AI DIGITAL WARDROBE</span>
+          <span className="mx-12">3D FASHION EXPERIENCE</span>
+          <span className="mx-12">VIRTUAL STYLING</span>
+          <span className="mx-12">FUTURE OF FASHION</span>
+        </Marquee>
       </section>
     </div>
   );

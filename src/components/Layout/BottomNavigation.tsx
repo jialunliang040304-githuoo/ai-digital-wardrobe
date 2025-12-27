@@ -49,12 +49,7 @@ const BottomNavigation: React.FC = () => {
 
   return (
     <nav 
-      className="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-full max-w-md border-t safe-area-pb"
-      style={{ 
-        backgroundColor: 'var(--card)', 
-        borderColor: 'var(--border)',
-        boxShadow: '0 -4px 6px rgba(0,0,0,0.05)'
-      }}
+      className="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-full max-w-md border-t-4 border-foreground bg-background safe-area-pb"
       role="navigation"
       aria-label="主导航"
       id="navigation"
@@ -69,12 +64,12 @@ const BottomNavigation: React.FC = () => {
               key={item.id}
               onClick={() => handleTabChange(item.id)}
               className={`
-                group flex flex-col items-center justify-center min-h-touch min-w-touch p-2 rounded-xl transition-all duration-200
+                group flex flex-col items-center justify-center min-h-touch min-w-touch p-2 transition-all duration-150 font-mono text-xs font-bold uppercase tracking-wide
                 ${isActive 
                   ? item.isCenter 
-                    ? 'bg-gradient-accent text-accent-foreground shadow-accent scale-110' 
-                    : 'text-accent bg-accent/10'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                    ? 'bg-accent text-background border-4 border-background transform scale-110 shadow-brutal-white' 
+                    : 'text-accent bg-foreground border-2 border-accent'
+                  : 'text-foreground hover:text-accent hover:bg-foreground/10 border-2 border-transparent'
                 }
                 ${item.isCenter ? 'relative -mt-2' : ''}
               `}
@@ -86,18 +81,18 @@ const BottomNavigation: React.FC = () => {
             >
               <Icon 
                 size={item.isCenter ? 22 : 20} 
-                className={`transition-transform duration-200 ${isActive && !item.isCenter ? 'scale-110' : ''} group-hover:scale-110`}
+                className={`transition-transform duration-150 ${isActive && !item.isCenter ? 'scale-110' : ''} group-hover:scale-110`}
                 aria-hidden="true"
               />
-              <span className={`text-xs mt-1 font-medium transition-all duration-200 ${
-                item.isCenter && isActive ? 'text-accent-foreground' : ''
+              <span className={`mt-1 transition-all duration-150 ${
+                item.isCenter && isActive ? 'text-background' : ''
               }`}>
                 {item.label}
               </span>
               
               {/* Active indicator for non-center items */}
               {isActive && !item.isCenter && (
-                <div className="absolute -top-1 w-1 h-1 bg-accent rounded-full animate-pulse-dot" />
+                <div className="absolute -top-1 w-2 h-2 bg-accent animate-glitch" />
               )}
             </button>
           );
