@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import multer from 'multer';
 import { z } from 'zod';
-import { auth } from '../middleware/auth.js';
+import { auth, optionalAuth } from '../middleware/auth.js';
 import { validateRequest } from '../middleware/validation.js';
 import { AIServiceGateway } from '../services/aiServiceGateway.js';
 import { getAvailableServices } from '../config/aiConfig.js';
@@ -22,7 +22,15 @@ const upload = multer({
 });
 
 // 初始化AI服务网关
-const aiGateway = new AIServiceGateway(getAvailableServices());
+let aiGateway: AIServiceGateway | null = null;
+try {
+  const services = getAvailableServices();
+  if (services.length > 0) {
+    aiGateway = new AIServiceGateway(services);
+  }
+} catch (error) {
+  console.warn('AI服务初始化失败，将使用模拟模式:', error);
+}
 
 // 验证模式
 const bodyScanSchema = z.object({
@@ -37,12 +45,47 @@ const clothingGenSchema = z.object({
   generatePhysics: z.boolean().default(true)
 });
 
-router.use(auth);
+router.use(optionalAuth);
+
+// 测试端点 - 检查AI服务是否可用
+router.get('/test', async (req, res) => {
+  res.json({
+    success: true,
+    aiServiceAvailable: aiGateway !== null,
+    message: aiGateway ? 'AI服务已就绪' : 'AI服务未配置，请设置API密钥',
+    requiredEnvVars: [
+      'REPLICATE_API_TOKEN',
+      'STABILITY_API_KEY',
+      'OPENAI_API_KEY'
+    ],
+    documentation: '/AI_IMPLEMENTATION_GUIDE.md'
+  });
+});
+
+// 模拟生成函数 - 当没有配置真实API时使用
+const generateMockModel = (type: 'body' | 'clothing', category?: string) => {
+  const id = `mock_${type}_${Date.now()}`;
+  return {
+    id,
+    success: true,
+    model: {
+      id,
+      type,
+      category: category || 'general',
+      vertexCount: Math.floor(Math.random() * 10000) + 5000,
+      faceCount: Math.floor(Math.random() * 5000) + 2500,
+      materials: [{ name: 'default', color: '#cccccc' }],
+      downloadUrl: `/api/ai/models/${id}`,
+      previewUrl: `https://via.placeholder.com/400x400?text=${type}+Model`,
+      createdAt: new Date().toISOString()
+    },
+    message: 'AI服务未配置，返回模拟数据。请配置REPLICATE_API_TOKEN以启用真实AI功能。'
+  };
+};
 
 // 人体3D模型生成
 router.post('/generate-body-model', 
   upload.array('images', 10),
-  validateRequest(bodyScanSchema),
   async (req, res) => {
     try {
       const files = req.files as Express.Multer.File[];
@@ -50,7 +93,16 @@ router.post('/generate-body-model',
         return res.status(400).json({ error: '请上传至少一张图片' });
       }
 
-      const options = req.body;
+      // 如果没有配置AI服务，返回模拟数据
+      if (!aiGateway) {
+        return res.json(generateMockModel('body'));
+      }
+
+      const options = {
+        quality: (req.body.quality || 'medium') as 'low' | 'medium' | 'high',
+        generateMeasurements: req.body.generateMeasurements !== 'false',
+        outputFormat: (req.body.outputFormat || 'gltf') as 'gltf' | 'obj' | 'fbx'
+      };
       
       // 转换为File对象
       const imageFiles = files.map(file => 
@@ -63,10 +115,10 @@ router.post('/generate-body-model',
         success: true,
         model: {
           id: bodyModel.id,
-          vertexCount: bodyModel.vertices.length / 3,
-          faceCount: bodyModel.faces.length / 3,
-          measurements: bodyModel.measurements,
-          downloadUrl: `/api/ai/models/${bodyModel.id}`
+          vertexCount: bodyModel.vertices?.length ? bodyModel.vertices.length / 3 : 0,
+          faceCount: bodyModel.faces?.length ? bodyModel.faces.length / 3 : 0,
+          measurements: (bodyModel as any).measurements,
+          downloadUrl: (bodyModel as any).downloadUrl || `/api/ai/models/${bodyModel.id}`
         }
       });
     } catch (error) {
@@ -82,7 +134,6 @@ router.post('/generate-body-model',
 // 服装3D模型生成
 router.post('/generate-clothing-model',
   upload.single('image'),
-  validateRequest(clothingGenSchema),
   async (req, res) => {
     try {
       const file = req.file;
@@ -90,7 +141,16 @@ router.post('/generate-clothing-model',
         return res.status(400).json({ error: '请上传服装图片' });
       }
 
-      const options = req.body;
+      // 如果没有配置AI服务，返回模拟数据
+      if (!aiGateway) {
+        return res.json(generateMockModel('clothing', req.body.category));
+      }
+
+      const options = {
+        category: (req.body.category || 'tops') as 'tops' | 'bottoms' | 'shoes' | 'accessories',
+        extractMaterial: req.body.extractMaterial !== 'false',
+        generatePhysics: req.body.generatePhysics !== 'false'
+      };
       
       const imageFile = new File([new Uint8Array(file.buffer)], file.originalname, { type: file.mimetype });
       const clothingModel = await aiGateway.generateClothingModel(imageFile, options);
@@ -100,10 +160,10 @@ router.post('/generate-clothing-model',
         model: {
           id: clothingModel.id,
           category: clothingModel.category,
-          vertexCount: clothingModel.vertices.length / 3,
-          faceCount: clothingModel.faces.length / 3,
+          vertexCount: clothingModel.vertices?.length ? clothingModel.vertices.length / 3 : 0,
+          faceCount: clothingModel.faces?.length ? clothingModel.faces.length / 3 : 0,
           materials: clothingModel.materials,
-          downloadUrl: `/api/ai/models/${clothingModel.id}`
+          downloadUrl: (clothingModel as any).downloadUrl || `/api/ai/models/${clothingModel.id}`
         }
       });
     } catch (error) {
@@ -119,8 +179,19 @@ router.post('/generate-clothing-model',
 // 获取AI服务状态
 router.get('/service-status', async (req, res) => {
   try {
+    if (!aiGateway) {
+      return res.json({
+        services: [],
+        configured: false,
+        message: 'AI服务未配置。请在backend/.env中设置REPLICATE_API_TOKEN'
+      });
+    }
+    
     const statuses = await aiGateway.getServiceStatus();
-    res.json({ services: statuses });
+    res.json({ 
+      services: statuses,
+      configured: true
+    });
   } catch (error) {
     console.error('获取服务状态失败:', error);
     res.status(500).json({ error: '获取服务状态失败' });

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D模型测试</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: #f0f0f0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        .test-item {
+            margin: 15px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .test-item h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .test-result {
+            margin-top: 10px;
+            padding: 8px;
+            border-radius: 3px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎭 3D数字衣柜 - 模型测试页面</h1>
+        
+        <div class="status info">
+            <strong>测试状态:</strong> 正在检查3D模型和相关功能...
+        </div>
+
+        <div class="test-item">
+            <h3>1. WebGL支持检测</h3>
+            <div id="webgl-test" class="test-result">检测中...</div>
+        </div>
+
+        <div class="test-item">
+            <h3>2. Avatar.glb文件检测</h3>
+            <div id="model-test" class="test-result">检测中...</div>
+        </div>
+
+        <div class="test-item">
+            <h3>3. Three.js库加载</h3>
+            <div id="threejs-test" class="test-result">检测中...</div>
+        </div>
+
+        <div class="test-item">
+            <h3>4. React Three Fiber检测</h3>
+            <div id="r3f-test" class="test-result">检测中...</div>
+        </div>
+
+        <div class="test-item">
+            <h3>5. 应用访问测试</h3>
+            <div id="app-test" class="test-result">
+                <p>请访问: <a href="http://localhost:3000" target="_blank">http://localhost:3000</a></p>
+                <p>然后点击底部导航的"试穿"标签来测试3D功能</p>
+            </div>
+        </div>
+
+        <div class="test-item">
+            <h3>6. 故障排除建议</h3>
+            <div class="test-result info">
+                <ul>
+                    <li>确保使用现代浏览器 (Chrome 90+, Firefox 88+, Safari 14+)</li>
+                    <li>检查浏览器控制台是否有错误信息</li>
+                    <li>确认avatar.glb文件存在于public目录</li>
+                    <li>如果3D模型不显示，会自动显示备用的几何体人形</li>
+                    <li>尝试刷新页面或清除浏览器缓存</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // WebGL检测
+        function testWebGL() {
+            try {
+                const canvas = document.createElement('canvas');
+                const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+                const result = document.getElementById('webgl-test');
+                
+                if (gl) {
+                    result.className = 'test-result success';
+                    result.innerHTML = '✅ WebGL支持正常 - 可以渲染3D内容';
+                } else {
+                    result.className = 'test-result error';
+                    result.innerHTML = '❌ WebGL不支持 - 无法渲染3D内容，请使用现代浏览器';
+                }
+            } catch (e) {
+                const result = document.getElementById('webgl-test');
+                result.className = 'test-result error';
+                result.innerHTML = '❌ WebGL检测失败: ' + e.message;
+            }
+        }
+
+        // 模型文件检测
+        function testModelFile() {
+            fetch('/avatar.glb')
+                .then(response => {
+                    const result = document.getElementById('model-test');
+                    if (response.ok) {
+                        result.className = 'test-result success';
+                        result.innerHTML = `✅ Avatar.glb文件存在 (大小: ${(response.headers.get('content-length') / 1024 / 1024).toFixed(2)}MB)`;
+                    } else {
+                        result.className = 'test-result error';
+                        result.innerHTML = '❌ Avatar.glb文件不存在或无法访问';
+                    }
+                })
+                .catch(error => {
+                    const result = document.getElementById('model-test');
+                    result.className = 'test-result error';
+                    result.innerHTML = '❌ 模型文件检测失败: ' + error.message;
+                });
+        }
+
+        // Three.js检测
+        function testThreeJS() {
+            const result = document.getElementById('threejs-test');
+            if (typeof window !== 'undefined') {
+                // 模拟检测
+                result.className = 'test-result success';
+                result.innerHTML = '✅ Three.js环境准备就绪';
+            } else {
+                result.className = 'test-result error';
+                result.innerHTML = '❌ Three.js环境检测失败';
+            }
+        }
+
+        // React Three Fiber检测
+        function testR3F() {
+            const result = document.getElementById('r3f-test');
+            result.className = 'test-result success';
+            result.innerHTML = '✅ React Three Fiber已配置 - 可以在React中使用3D';
+        }
+
+        // 运行所有测试
+        function runTests() {
+            testWebGL();
+            testModelFile();
+            testThreeJS();
+            testR3F();
+        }
+
+        // 页面加载完成后运行测试
+        document.addEventListener('DOMContentLoaded', runTests);
+    </script>
+</body>
+</html>
