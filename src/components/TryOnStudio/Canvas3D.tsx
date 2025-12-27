@@ -1,31 +1,157 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { RotateCcw, ZoomIn, ZoomOut } from 'lucide-react';
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 interface Canvas3DProps {
   className?: string;
+  currentClothing?: any;
 }
 
-const Canvas3D: React.FC<Canvas3DProps> = ({ className = '' }) => {
+const Canvas3D: React.FC<Canvas3DProps> = ({ className = '', currentClothing }) => {
   const canvasRef = useRef<HTMLDivElement>(null);
+  const sceneRef = useRef<THREE.Scene>();
+  const rendererRef = useRef<THREE.WebGLRenderer>();
+  const cameraRef = useRef<THREE.PerspectiveCamera>();
+  const avatarRef = useRef<THREE.Group>();
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // 这里将来会初始化 React Three Fiber 场景
-    // 目前使用占位符实现
+    if (!canvasRef.current) return;
+
+    // 初始化场景
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xf5f5f5);
+    sceneRef.current = scene;
+
+    // 初始化相机
+    const camera = new THREE.PerspectiveCamera(
+      50,
+      canvasRef.current.clientWidth / canvasRef.current.clientHeight,
+      0.1,
+      1000
+    );
+    camera.position.set(0, 1.6, 3);
+    camera.lookAt(0, 1, 0);
+    cameraRef.current = camera;
+
+    // 初始化渲染器
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(canvasRef.current.clientWidth, canvasRef.current.clientHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    rendererRef.current = renderer;
+    canvasRef.current.appendChild(renderer.domElement);
+
+    // 添加光照
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    scene.add(ambientLight);
+
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    directionalLight.position.set(5, 10, 5);
+    directionalLight.castShadow = true;
+    directionalLight.shadow.mapSize.width = 2048;
+    directionalLight.shadow.mapSize.height = 2048;
+    scene.add(directionalLight);
+
+    // 添加地面
+    const groundGeometry = new THREE.CircleGeometry(2, 32);
+    const groundMaterial = new THREE.MeshLambertMaterial({ 
+      color: 0xffffff,
+      transparent: true,
+      opacity: 0.8
+    });
+    const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+    ground.rotation.x = -Math.PI / 2;
+    ground.receiveShadow = true;
+    scene.add(ground);
+
+    // 加载avatar.glb模型
+    const loader = new GLTFLoader();
+    loader.load(
+      '/avatar.glb',
+      (gltf: any) => {
+        const avatar = gltf.scene;
+        avatar.scale.set(1, 1, 1);
+        avatar.position.set(0, 0, 0);
+        
+        // 启用阴影
+        avatar.traverse((child: any) => {
+          if (child instanceof THREE.Mesh) {
+            child.castShadow = true;
+            child.receiveShadow = true;
+          }
+        });
+
+        scene.add(avatar);
+        avatarRef.current = avatar;
+        setIsLoading(false);
+      },
+      (progress: any) => {
+        console.log('Loading progress:', (progress.loaded / progress.total * 100) + '%');
+      },
+      (error: any) => {
+        console.error('Error loading avatar:', error);
+        setIsLoading(false);
+      }
+    );
+
+    // 渲染循环
+    const animate = () => {
+      requestAnimationFrame(animate);
+      renderer.render(scene, camera);
+    };
+    animate();
+
+    // 处理窗口大小变化
+    const handleResize = () => {
+      if (!canvasRef.current || !camera || !renderer) return;
+      
+      const width = canvasRef.current.clientWidth;
+      const height = canvasRef.current.clientHeight;
+      
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+      renderer.setSize(width, height);
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      if (canvasRef.current && renderer.domElement) {
+        canvasRef.current.removeChild(renderer.domElement);
+      }
+      renderer.dispose();
+    };
   }, []);
 
+  // 处理服装换装
+  useEffect(() => {
+    if (!avatarRef.current || !currentClothing) return;
+
+    // 这里将来实现服装换装逻辑
+    console.log('应用服装:', currentClothing);
+  }, [currentClothing]);
+
   const handleReset = () => {
-    // 重置相机位置和模型姿态
-    console.log('重置3D视图');
+    if (cameraRef.current) {
+      cameraRef.current.position.set(0, 1.6, 3);
+      cameraRef.current.lookAt(0, 1, 0);
+    }
   };
 
   const handleZoomIn = () => {
-    // 放大视图
-    console.log('放大');
+    if (cameraRef.current) {
+      cameraRef.current.position.multiplyScalar(0.9);
+    }
   };
 
   const handleZoomOut = () => {
-    // 缩小视图
-    console.log('缩小');
+    if (cameraRef.current) {
+      cameraRef.current.position.multiplyScalar(1.1);
+    }
   };
 
   return (
@@ -33,23 +159,17 @@ const Canvas3D: React.FC<Canvas3DProps> = ({ className = '' }) => {
       {/* 3D场景容器 */}
       <div 
         ref={canvasRef}
-        className="w-full h-full flex items-center justify-center relative"
+        className="w-full h-full relative"
+        style={{ minHeight: '400px' }}
       >
-        {/* 占位符内容 */}
-        <div className="text-center">
-          <div className="w-32 h-48 bg-gray-300 rounded-lg mx-auto mb-4 flex items-center justify-center">
-            <span className="text-gray-600 text-sm">3D Avatar</span>
+        {isLoading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+            <div className="text-center">
+              <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+              <p className="text-gray-600 text-sm">加载3D模型中...</p>
+            </div>
           </div>
-          <p className="text-gray-500 text-sm">拖拽旋转查看</p>
-        </div>
-
-        {/* 3D平台底座 */}
-        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2">
-          <div className="w-40 h-4 bg-gradient-to-r from-blue-200 via-blue-300 to-blue-200 rounded-full opacity-60"></div>
-        </div>
-
-        {/* 环境光效果 */}
-        <div className="absolute inset-0 bg-gradient-radial from-transparent via-transparent to-gray-200/20 pointer-events-none"></div>
+        )}
       </div>
 
       {/* 3D控制按钮 */}
@@ -77,9 +197,9 @@ const Canvas3D: React.FC<Canvas3DProps> = ({ className = '' }) => {
         </button>
       </div>
 
-      {/* 加载指示器 */}
+      {/* 状态指示器 */}
       <div className="absolute bottom-4 left-4 text-xs text-gray-500 bg-white/80 px-2 py-1 rounded">
-        WebGL 就绪
+        {isLoading ? '加载中...' : '3D模型就绪'}
       </div>
     </div>
   );

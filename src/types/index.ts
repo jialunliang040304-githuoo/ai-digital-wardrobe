@@ -42,7 +42,7 @@ export interface ClothingItem {
 }
 
 export type ClothingCategory = 'tops' | 'bottoms' | 'shoes' | 'accessories';
-export type ClothingType = 'shirt' | 'pants' | 'dress' | 'jacket' | 'sneakers' | 'hat';
+export type ClothingType = 'shirt' | 'pants' | 'dress' | 'jacket' | 'sneakers' | 'hat' | 'ai-generated';
 
 // 挂载点
 export interface MountPoint {

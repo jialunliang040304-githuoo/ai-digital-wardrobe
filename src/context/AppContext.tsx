@@ -234,7 +234,7 @@ export function useAppContext() {
 export const actions = {
   setUser: (user: any) => ({ type: 'SET_USER' as const, payload: user }),
   addClothingItem: (item: any) => ({ type: 'ADD_CLOTHING_ITEM' as const, payload: item }),
-  wearClothing: (item: any, slot: keyof any) => ({ type: 'WEAR_CLOTHING' as const, payload: { item, slot } }),
+  wearClothing: (item: any, slot: 'top' | 'bottom' | 'shoes' | 'accessories') => ({ type: 'WEAR_CLOTHING' as const, payload: { item, slot } }),
   saveLook: (look: any) => ({ type: 'SAVE_LOOK' as const, payload: look }),
   shareToFeed: (post: any) => ({ type: 'SHARE_TO_FEED' as const, payload: post }),
   setActiveTab: (tab: TabType) => ({ type: 'SET_ACTIVE_TAB' as const, payload: tab }),

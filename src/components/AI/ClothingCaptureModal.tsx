@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Camera, Upload, X, Loader2, CheckCircle, AlertCircle, Shirt, Zap } from 'lucide-react';
+import { Camera, Upload, X, CheckCircle, AlertCircle, Shirt, Zap } from 'lucide-react';
 import { aiService, ClothingGenOptions, AIModelResult } from '../../services/aiService';
 
 interface ClothingCaptureModalProps {

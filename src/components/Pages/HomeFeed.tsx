@@ -4,7 +4,6 @@ import { FeedPost } from '../../types';
 import Card from '../UI/Card';
 import Button from '../UI/Button';
 import Marquee from '../UI/Marquee';
-import AvatarScene from '../3D/AvatarScene';
 import { Heart, MessageCircle, Share2, Sparkles, TrendingUp } from 'lucide-react';
 
 interface HomePageProps {
@@ -244,9 +243,9 @@ const HomeFeed: React.FC<HomePageProps> = ({ isActive }) => {
                     )}
                   </div>
 
-                  {/* Post Content - 3D Avatar Scene */}
-                  <div className="aspect-square border-4 border-current relative overflow-hidden">
-                    <AvatarScene className="w-full h-full" />
+                  {/* Post Content */}
+                  <div className="aspect-square bg-foreground border-4 border-current flex items-center justify-center relative">
+                    <Sparkles size={48} className="text-accent" />
                     <div className="absolute bottom-2 left-2 bg-accent text-background px-2 py-1 font-mono text-xs font-bold uppercase">
                       3D试穿
                     </div>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Save, Share, Undo2, User, Shirt, Zap } from 'lucide-react';
-import { ClothingItem, ClothingCategory } from '../../types';
+import { ClothingItem, ClothingCategory, WornClothing } from '../../types';
 import { useAppContext, actions } from '../../context/AppContext';
 import Canvas3D from '../TryOnStudio/Canvas3D';
 import ClothingCarousel from '../TryOnStudio/ClothingCarousel';
@@ -33,8 +33,19 @@ const TryOnStudio: React.FC<TryOnStudioProps> = ({ isActive }) => {
 
   const handleSelectClothing = (item: ClothingItem) => {
     // 根据物品类型决定穿戴位置
-    const slot = item.category === 'accessories' ? 'accessories' : item.category;
-    dispatch(actions.wearClothing(item, slot as keyof typeof state.currentLook));
+    let slot: keyof WornClothing;
+    
+    if (item.category === 'tops') {
+      slot = 'top';
+    } else if (item.category === 'bottoms') {
+      slot = 'bottom';
+    } else if (item.category === 'shoes') {
+      slot = 'shoes';
+    } else {
+      slot = 'accessories';
+    }
+    
+    dispatch(actions.wearClothing(item, slot));
   };
 
   const handleBodyModelGenerated = (model: AIModelResult) => {
@@ -52,14 +63,15 @@ const TryOnStudio: React.FC<TryOnStudioProps> = ({ isActive }) => {
       name: `AI生成${model.category === 'tops' ? '上装' : model.category === 'bottoms' ? '下装' : model.category === 'shoes' ? '鞋子' : '配饰'}`,
       category: (model.category || 'tops') as ClothingCategory,
       type: 'ai-generated',
-      color: '#ffffff',
       texture: model.downloadUrl,
       meshData: JSON.stringify({
         vertices: model.vertexCount,
         faces: model.faceCount,
         materials: model.materials
       }),
-      tags: ['AI生成', '3D模型']
+      tags: ['AI生成', '3D模型'],
+      createdAt: new Date(),
+      mountPoints: []
     };
     
     // 添加到衣柜
@@ -98,42 +110,26 @@ const TryOnStudio: React.FC<TryOnStudioProps> = ({ isActive }) => {
     return labels[category];
   };
 
-  const getCurrentItem = (category: ClothingCategory) => {
+  const getCurrentItem = (category: ClothingCategory): ClothingItem | undefined => {
     if (category === 'accessories') {
       return state.currentLook.accessories[0]; // 简化处理，只显示第一个配饰
     }
-    return state.currentLook[category as keyof typeof state.currentLook] as ClothingItem;
+    
+    if (category === 'tops') {
+      return state.currentLook.top;
+    } else if (category === 'bottoms') {
+      return state.currentLook.bottom;
+    } else if (category === 'shoes') {
+      return state.currentLook.shoes;
+    }
+    
+    return undefined;
   };
 
   if (!isActive) return null;
 
   return (
     <div className="h-full bg-gray-50 flex flex-col relative">
-      {/* AI功能快捷栏 */}
-      <div className="absolute top-4 left-4 z-40 flex flex-col gap-2">
-        <button
-          onClick={() => setShowBodyScanModal(true)}
-          className="group relative p-3 bg-white/90 backdrop-blur-sm border border-blue-200 rounded-xl hover:border-blue-400 transition-all duration-300 hover:scale-105 shadow-lg"
-          title="AI人体扫描"
-        >
-          <User className="w-6 h-6 text-blue-600" />
-          <div className="absolute left-full ml-2 px-2 py-1 bg-gray-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-            AI人体扫描
-          </div>
-        </button>
-        
-        <button
-          onClick={() => setShowClothingCaptureModal(true)}
-          className="group relative p-3 bg-white/90 backdrop-blur-sm border border-purple-200 rounded-xl hover:border-purple-400 transition-all duration-300 hover:scale-105 shadow-lg"
-          title="AI服装生成"
-        >
-          <Shirt className="w-6 h-6 text-purple-600" />
-          <div className="absolute left-full ml-2 px-2 py-1 bg-gray-800 text-white text-sm rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-            AI服装生成
-          </div>
-        </button>
-      </div>
-
       {/* AI生成状态指示器 */}
       {aiGeneratedModels.length > 0 && (
         <div className="absolute top-4 right-4 z-40">
@@ -156,6 +152,20 @@ const TryOnStudio: React.FC<TryOnStudioProps> = ({ isActive }) => {
           
           <div className="flex space-x-2">
             <button
+              onClick={() => setShowBodyScanModal(true)}
+              className="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-colors min-h-touch min-w-touch"
+              aria-label="AI人体扫描"
+            >
+              <User size={18} />
+            </button>
+            <button
+              onClick={() => setShowClothingCaptureModal(true)}
+              className="p-2 text-purple-600 hover:bg-purple-50 rounded-full transition-colors min-h-touch min-w-touch"
+              aria-label="AI服装生成"
+            >
+              <Shirt size={18} />
+            </button>
+            <button
               onClick={handleClearLook}
               className="p-2 text-gray-600 hover:bg-gray-100 rounded-full transition-colors min-h-touch min-w-touch"
               aria-label="清空造型"
@@ -174,7 +184,7 @@ const TryOnStudio: React.FC<TryOnStudioProps> = ({ isActive }) => {
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {/* 3D Canvas 区域 */}
-        <Canvas3D className="aspect-[3/4]" />
+        <Canvas3D className="aspect-[3/4]" currentClothing={state.currentLook} />
 
         {/* 当前穿着显示 */}
         <div className="bg-white rounded-lg p-4">
