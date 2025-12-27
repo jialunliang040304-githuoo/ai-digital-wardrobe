@@ -241,7 +241,7 @@ const TryOnStudio: React.FC<TryOnStudioProps> = ({ isActive }) => {
       <div className="flex-shrink-0 p-4 bg-white border-t">
         <button
           onClick={handleSaveLook}
-          className="w-full bg-primary-500 text-white py-4 rounded-lg font-medium text-lg hover:bg-primary-600 transition-colors min-h-touch flex items-center justify-center space-x-2"
+          className="w-full bg-blue-500 text-white py-4 rounded-lg font-medium text-lg hover:bg-blue-600 transition-colors min-h-touch flex items-center justify-center space-x-2"
         >
           <Save size={20} />
           <span>保存造型</span>

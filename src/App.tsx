@@ -2,7 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router } from 'react-router-dom';
 import { AppProvider } from './context/AppContext';
 import Layout from './components/Layout/Layout';
-import ErrorBoundary from './components/UI/ErrorBoundary';
+import ErrorBoundary from './components/ErrorBoundary';
 import NetworkStatus from './components/UI/NetworkStatus';
 import { ToastContainer, useToast } from './components/UI/Toast';
 
@@ -11,7 +11,7 @@ function App() {
     <ErrorBoundary>
       <AppProvider>
         <Router>
-          <div className="App min-h-screen bg-gray-50">
+          <div className="App min-h-screen bg-background">
             <NetworkStatus />
             <Layout />
             <AppToastContainer />
