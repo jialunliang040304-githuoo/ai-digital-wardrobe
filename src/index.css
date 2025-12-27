@@ -1,152 +1,101 @@
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Calistoga&family=Inter:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Kinetic Typography Design System */
+/* Minimalist Modern Design System */
 :root {
-  /* Core Colors - High Contrast Brutalism */
-  --background: #000000;
-  --foreground: #FFFFFF;
-  --accent: #00FF00;
-  --accent-alt: #FF0000;
-  --accent-blue: #0000FF;
-  --accent-yellow: #FFFF00;
-  --accent-magenta: #FF00FF;
-  --accent-cyan: #00FFFF;
+  /* Core Colors - Electric Blue Theme */
+  --background: #FFFFFF;
+  --foreground: #1A1A1A;
+  --accent: #0052FF;
+  --accent-light: #3374FF;
+  --accent-dark: #0041CC;
+  --muted: #F8F9FA;
+  --muted-foreground: #6B7280;
+  --border: #E5E7EB;
+  --ring: #0052FF;
   
-  /* Inverted Colors */
-  --background-inverted: #FFFFFF;
-  --foreground-inverted: #000000;
+  /* Gradients */
+  --gradient-primary: linear-gradient(135deg, #0052FF 0%, #3374FF 100%);
+  --gradient-secondary: linear-gradient(135deg, #F8F9FA 0%, #E5E7EB 100%);
   
-  /* Typography Scale - Viewport Based */
-  --text-xs: clamp(0.75rem, 2vw, 1rem);
-  --text-sm: clamp(1rem, 3vw, 1.25rem);
-  --text-base: clamp(1.25rem, 4vw, 1.5rem);
-  --text-lg: clamp(1.5rem, 5vw, 2rem);
-  --text-xl: clamp(2rem, 6vw, 3rem);
-  --text-2xl: clamp(3rem, 8vw, 4rem);
-  --text-3xl: clamp(4rem, 10vw, 6rem);
-  --text-4xl: clamp(6rem, 12vw, 8rem);
-  --text-5xl: clamp(8rem, 15vw, 12rem);
-  --text-6xl: clamp(12rem, 20vw, 16rem);
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
   
-  /* Digital Decorations */
-  --decoration-size: clamp(2rem, 8vw, 6rem);
-  --decoration-opacity: 0.8;
+  /* Typography Scale */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+  --text-4xl: 2.25rem;
+  --text-5xl: 3rem;
+  --text-6xl: 3.75rem;
 }
 
 /* Typography Classes */
 .font-display {
-  font-family: "Bebas Neue", Arial Black, sans-serif;
-  font-weight: 400;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.font-mono {
-  font-family: "JetBrains Mono", monospace;
+  font-family: "Calistoga", serif;
   font-weight: 400;
 }
 
-.font-mono-bold {
-  font-family: "JetBrains Mono", monospace;
+.font-body {
+  font-family: "Inter", sans-serif;
+  font-weight: 400;
+}
+
+.font-medium {
+  font-weight: 500;
+}
+
+.font-semibold {
+  font-weight: 600;
+}
+
+.font-bold {
   font-weight: 700;
 }
 
-/* Viewport Typography */
-.text-vw-xs { font-size: var(--text-xs); }
-.text-vw-sm { font-size: var(--text-sm); }
-.text-vw-base { font-size: var(--text-base); }
-.text-vw-lg { font-size: var(--text-lg); }
-.text-vw-xl { font-size: var(--text-xl); }
-.text-vw-2xl { font-size: var(--text-2xl); }
-.text-vw-3xl { font-size: var(--text-3xl); }
-.text-vw-4xl { font-size: var(--text-4xl); }
-.text-vw-5xl { font-size: var(--text-5xl); }
-.text-vw-6xl { font-size: var(--text-6xl); }
-
-/* Digital Decorations */
-.decoration-number {
-  font-family: "JetBrains Mono", monospace;
-  font-weight: 700;
-  font-size: var(--decoration-size);
-  opacity: var(--decoration-opacity);
-  line-height: 0.8;
-  user-select: none;
-  pointer-events: none;
+/* Gradient Text */
+.gradient-text {
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-/* Color Inversion Effects */
-.invert-colors {
-  background-color: var(--foreground);
-  color: var(--background);
+/* Floating Animation */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
 }
 
-.invert-colors-alt {
-  background-color: var(--background-inverted);
-  color: var(--foreground-inverted);
+@keyframes float-delayed {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
 }
 
-/* Hard Shadows - Brutalist Style */
-.shadow-brutal {
-  box-shadow: 8px 8px 0px var(--accent);
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }
 
-.shadow-brutal-red {
-  box-shadow: 8px 8px 0px var(--accent-alt);
+.animate-float {
+  animation: float 3s ease-in-out infinite;
 }
 
-.shadow-brutal-blue {
-  box-shadow: 8px 8px 0px var(--accent-blue);
+.animate-float-delayed {
+  animation: float-delayed 3s ease-in-out infinite 0.5s;
 }
 
-.shadow-brutal-yellow {
-  box-shadow: 8px 8px 0px var(--accent-yellow);
-}
-
-/* Kinetic Animations */
-@keyframes marquee-left {
-  0% { transform: translateX(100%); }
-  100% { transform: translateX(-100%); }
-}
-
-@keyframes marquee-right {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
-}
-
-@keyframes glitch {
-  0%, 100% { transform: translate(0); }
-  20% { transform: translate(-2px, 2px); }
-  40% { transform: translate(-2px, -2px); }
-  60% { transform: translate(2px, 2px); }
-  80% { transform: translate(2px, -2px); }
-}
-
-@keyframes color-shift {
-  0% { color: var(--accent); }
-  25% { color: var(--accent-alt); }
-  50% { color: var(--accent-blue); }
-  75% { color: var(--accent-yellow); }
-  100% { color: var(--accent); }
-}
-
-.animate-marquee-left {
-  animation: marquee-left 20s linear infinite;
-}
-
-.animate-marquee-right {
-  animation: marquee-right 25s linear infinite;
-}
-
-.animate-glitch {
-  animation: glitch 0.3s ease-in-out infinite;
-}
-
-.animate-color-shift {
-  animation: color-shift 3s ease-in-out infinite;
+.animate-pulse-dot {
+  animation: pulse-dot 2s ease-in-out infinite;
 }
 
 /* 屏幕阅读器专用样式 */
@@ -231,7 +180,7 @@
 
 @layer base {
   html {
-    font-family: "JetBrains Mono", monospace;
+    font-family: "Inter", sans-serif;
   }
   
   body {
@@ -239,7 +188,6 @@
     color: var(--foreground);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    overflow-x: hidden; /* Prevent horizontal scroll from marquees */
   }
 
   * {
@@ -273,108 +221,49 @@
 }
 
 @layer components {
-  /* Kinetic Typography Components */
-  
-  /* Brutalist Buttons */
-  .btn-brutal {
-    @apply font-display text-vw-base px-6 py-4 border-4 border-current transition-all duration-150;
-    background-color: var(--accent);
-    color: var(--background);
-    border-color: var(--background);
-    text-transform: uppercase;
+  /* Modern Button Styles */
+  .btn-gradient {
+    background: var(--gradient-primary);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    box-shadow: var(--shadow-md);
   }
   
-  .btn-brutal:hover {
-    transform: translate(-4px, -4px);
-    box-shadow: 8px 8px 0px var(--background);
+  .btn-gradient:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
   }
   
-  .btn-brutal:active {
-    transform: translate(0, 0);
-    box-shadow: 4px 4px 0px var(--background);
+  .btn-gradient:active {
+    transform: translateY(0);
   }
   
-  .btn-brutal-red {
-    background-color: var(--accent-alt);
-    color: var(--background);
+  /* Modern Card Styles */
+  .card-modern {
+    background: var(--background);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.2s ease;
   }
   
-  .btn-brutal-blue {
-    background-color: var(--accent-blue);
-    color: var(--foreground);
+  .card-modern:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
   }
   
-  /* Hard Edge Cards */
-  .card-brutal {
-    @apply border-4 border-current p-6 transition-all duration-150;
-    background-color: var(--background);
-    border-color: var(--foreground);
+  /* Gradient Background */
+  .bg-gradient-accent {
+    background: var(--gradient-primary);
   }
   
-  .card-brutal:hover {
-    transform: translate(-4px, -4px);
-    box-shadow: 8px 8px 0px var(--accent);
-  }
-  
-  .card-brutal-inverted {
-    background-color: var(--foreground);
-    color: var(--background);
-    border-color: var(--background);
-  }
-  
-  .card-brutal-inverted:hover {
-    box-shadow: 8px 8px 0px var(--accent-alt);
-  }
-  
-  /* Marquee Containers */
-  .marquee-container {
-    @apply overflow-hidden whitespace-nowrap;
-    mask-image: linear-gradient(
-      to right,
-      transparent 0%,
-      black 10%,
-      black 90%,
-      transparent 100%
-    );
-  }
-  
-  /* Digital Decoration Positioning */
-  .decoration-absolute {
-    position: absolute;
-    z-index: -1;
-  }
-  
-  .decoration-top-left {
-    top: -2rem;
-    left: -2rem;
-  }
-  
-  .decoration-top-right {
-    top: -2rem;
-    right: -2rem;
-  }
-  
-  .decoration-bottom-left {
-    bottom: -2rem;
-    left: -2rem;
-  }
-  
-  .decoration-bottom-right {
-    bottom: -2rem;
-    right: -2rem;
-  }
-  
-  /* Legacy compatibility - Updated for Kinetic Typography */
-  .container-mobile {
-    @apply max-w-md mx-auto px-4;
-  }
-  
-  .btn-primary {
-    @apply btn-brutal;
-  }
-  
-  .btn-secondary {
-    @apply btn-brutal-red;
+  .bg-gradient-secondary {
+    background: var(--gradient-secondary);
   }
 
   .touch-item {

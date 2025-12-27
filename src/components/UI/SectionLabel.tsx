@@ -2,23 +2,17 @@ import React from 'react';
 
 interface SectionLabelProps {
   children: React.ReactNode;
-  animated?: boolean;
   className?: string;
 }
 
 const SectionLabel: React.FC<SectionLabelProps> = ({
   children,
-  animated = false,
   className = ''
 }) => {
   return (
-    <div className={`section-label ${className}`}>
-      <span 
-        className={`section-label-dot ${animated ? 'animate-pulse-dot' : ''}`}
-      />
-      <span className="section-label-text">
-        {children}
-      </span>
+    <div className={`inline-flex items-center px-3 py-1 rounded-full bg-accent/10 text-accent text-sm font-medium ${className}`}>
+      <div className="w-2 h-2 bg-accent rounded-full mr-2 animate-pulse-dot" />
+      {children}
     </div>
   );
 };

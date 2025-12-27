@@ -1,8 +1,7 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { AppProvider } from '../context/AppContext';
 import Wardrobe from '../components/Pages/Wardrobe';
-import CategoryFilter from '../components/Wardrobe/CategoryFilter';
 import WardrobeGrid from '../components/Wardrobe/WardrobeGrid';
 import { ClothingItem, ClothingCategory } from '../types';
 import fc from 'fast-check';
@@ -97,7 +96,7 @@ describe('分类筛选属性测试', () => {
         (selectedCategory, itemCategories) => {
           // 创建测试物品
           const items = itemCategories.map((category, index) => 
-            createMockClothingItem(index.toString(), category)
+            createMockClothingItem(index.toString(), category as ClothingCategory)
           );
 
           // 筛选指定分类的物品

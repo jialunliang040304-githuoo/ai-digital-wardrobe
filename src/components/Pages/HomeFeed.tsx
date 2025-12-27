@@ -3,8 +3,8 @@ import { useAppContext } from '../../context/AppContext';
 import { FeedPost } from '../../types';
 import Card from '../UI/Card';
 import Button from '../UI/Button';
-import Marquee from '../UI/Marquee';
-import { Heart, MessageCircle, Share2, Sparkles, TrendingUp } from 'lucide-react';
+import SectionLabel from '../UI/SectionLabel';
+import { Heart, MessageCircle, Share2, Sparkles, TrendingUp, ArrowRight } from 'lucide-react';
 
 interface HomePageProps {
   isActive: boolean;
@@ -99,48 +99,25 @@ const HomeFeed: React.FC<HomePageProps> = ({ isActive }) => {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
-      {/* Hero Section with Kinetic Typography */}
-      <section className="relative py-20 px-4">
-        {/* Digital Decorations */}
-        <div className="decoration-absolute decoration-top-left decoration-number animate-glitch text-accent">
-          01
-        </div>
-        <div className="decoration-absolute decoration-top-right decoration-number animate-color-shift text-accent-alt">
-          3D
-        </div>
-        <div className="decoration-absolute decoration-bottom-left decoration-number text-accent-blue">
-          AI
-        </div>
-        <div className="decoration-absolute decoration-bottom-right decoration-number animate-glitch text-accent-yellow">
-          24
-        </div>
-        
-        <div className="max-w-6xl mx-auto text-center relative z-10">
-          {/* Marquee Label */}
-          <div className="mb-8">
-            <Marquee speed={30} className="font-mono text-vw-sm text-accent">
-              <span className="mx-8">AI数字衣柜</span>
-              <span className="mx-8">3D试穿体验</span>
-              <span className="mx-8">智能穿搭推荐</span>
-              <span className="mx-8">虚拟时尚</span>
-            </Marquee>
-          </div>
+    <div className="min-h-screen bg-background">
+      {/* Hero Section */}
+      <section className="relative py-20 px-6 text-center">
+        <div className="max-w-4xl mx-auto">
+          <SectionLabel className="mb-8 animate-float">
+            AI数字衣柜
+          </SectionLabel>
           
-          <h1 className="font-display text-vw-4xl mb-8 text-foreground leading-none">
+          <h1 className="font-display text-5xl md:text-7xl mb-6 text-foreground leading-tight">
             发现你的
-            <br />
-            <span className="text-accent animate-color-shift">专属风格</span>
+            <span className="gradient-text block animate-float-delayed">专属风格</span>
           </h1>
           
-          <p className="font-mono text-vw-base text-foreground mb-12 max-w-2xl mx-auto uppercase tracking-wider">
-            通过AI技术打造个性化3D试穿体验
-            <br />
-            探索无限穿搭可能性
+          <p className="text-xl text-muted-foreground mb-12 max-w-2xl mx-auto leading-relaxed">
+            通过AI技术打造个性化3D试穿体验，探索无限穿搭可能性
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-6 justify-center">
-            <Button variant="primary" size="lg">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button variant="primary" size="lg" showArrow>
               开始试穿
             </Button>
             <Button variant="secondary" size="lg">
@@ -148,119 +125,100 @@ const HomeFeed: React.FC<HomePageProps> = ({ isActive }) => {
             </Button>
           </div>
         </div>
+        
+        {/* Floating Elements */}
+        <div className="absolute top-20 left-10 w-20 h-20 bg-gradient-accent rounded-full opacity-20 animate-float" />
+        <div className="absolute bottom-20 right-10 w-16 h-16 bg-accent/30 rounded-full animate-float-delayed" />
       </section>
 
-      {/* Stats Section - Color Inverted */}
-      <section className="invert-colors py-16 px-4 relative">
-        {/* Background Marquees */}
-        <div className="absolute inset-0 opacity-10">
-          <Marquee direction="left" speed={20} className="font-display text-vw-6xl">
-            <span className="mx-16">DIGITAL</span>
-            <span className="mx-16">WARDROBE</span>
-            <span className="mx-16">3D</span>
-            <span className="mx-16">AI</span>
-          </Marquee>
-        </div>
-        
-        <div className="max-w-6xl mx-auto relative z-10">
+      {/* Stats Section - Inverted */}
+      <section className="bg-foreground text-background py-16 px-6">
+        <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            <div>
-              <div className="font-display text-vw-3xl mb-2 text-accent">10K+</div>
-              <div className="font-mono text-vw-sm uppercase tracking-wider">活跃用户</div>
+            <div className="animate-float">
+              <div className="font-display text-4xl mb-2 text-white">10K+</div>
+              <div className="text-gray-300">活跃用户</div>
             </div>
-            <div>
-              <div className="font-display text-vw-3xl mb-2 text-accent-alt">50K+</div>
-              <div className="font-mono text-vw-sm uppercase tracking-wider">穿搭作品</div>
+            <div className="animate-float-delayed">
+              <div className="font-display text-4xl mb-2 text-white">50K+</div>
+              <div className="text-gray-300">穿搭作品</div>
             </div>
-            <div>
-              <div className="font-display text-vw-3xl mb-2 text-accent-blue">100K+</div>
-              <div className="font-mono text-vw-sm uppercase tracking-wider">服装单品</div>
+            <div className="animate-float">
+              <div className="font-display text-4xl mb-2 text-white">100K+</div>
+              <div className="text-gray-300">服装单品</div>
             </div>
-            <div>
-              <div className="font-display text-vw-3xl mb-2 text-accent-yellow">1M+</div>
-              <div className="font-mono text-vw-sm uppercase tracking-wider">试穿次数</div>
+            <div className="animate-float-delayed">
+              <div className="font-display text-4xl mb-2 text-white">1M+</div>
+              <div className="text-gray-300">试穿次数</div>
             </div>
           </div>
         </div>
       </section>
 
       {/* Featured Posts Section */}
-      <section className="py-20 px-4 relative">
-        {/* Section Header with Marquee */}
-        <div className="text-center mb-16">
-          <Marquee direction="right" speed={25} className="font-mono text-vw-sm text-accent mb-8">
-            <span className="mx-8">精选作品</span>
-            <span className="mx-8">今日热门</span>
-            <span className="mx-8">社区推荐</span>
-            <span className="mx-8">3D穿搭</span>
-          </Marquee>
-          
-          <h2 className="font-display text-vw-3xl mb-8 text-foreground leading-none">
-            今日<span className="text-accent-alt">热门</span>穿搭
-          </h2>
-          
-          <p className="font-mono text-vw-base text-foreground max-w-2xl mx-auto uppercase tracking-wide">
-            发现社区中最受欢迎的3D穿搭作品
-          </p>
-        </div>
-
+      <section className="py-20 px-6">
         <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+          <div className="text-center mb-16">
+            <SectionLabel className="mb-6">
+              精选作品
+            </SectionLabel>
+            
+            <h2 className="font-display text-4xl mb-6 text-foreground">
+              今日热门穿搭
+            </h2>
+            
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              发现社区中最受欢迎的3D穿搭作品
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
             {posts.map((post, index) => (
               <Card 
                 key={post.id} 
-                variant={index === 0 ? 'inverted' : 'default'}
+                variant={index === 0 ? 'gradient' : 'default'}
                 className="group relative"
               >
-                {/* Digital decoration for featured post */}
+                {/* Featured Badge */}
                 {index === 0 && (
-                  <div className="absolute -top-4 -right-4 font-display text-vw-lg text-accent-alt animate-glitch">
-                    HOT
+                  <div className="absolute -top-3 -right-3 bg-accent text-white px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-1">
+                    <TrendingUp size={14} />
+                    热门
                   </div>
                 )}
                 
                 <div className="space-y-4">
                   {/* Post Header */}
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-accent border-2 border-background flex items-center justify-center">
-                      <span className="font-display text-background text-sm">
-                        {post.username.charAt(0)}
-                      </span>
+                    <div className="w-10 h-10 bg-gradient-accent rounded-full flex items-center justify-center text-white font-semibold">
+                      {post.username.charAt(0)}
                     </div>
                     <div>
-                      <div className="font-mono font-bold text-sm uppercase tracking-wide">
+                      <div className="font-semibold text-sm">
                         {post.username}
                       </div>
-                      <div className="font-mono text-xs opacity-70">2小时前</div>
+                      <div className="text-xs text-muted-foreground">2小时前</div>
                     </div>
-                    {index === 0 && (
-                      <div className="ml-auto">
-                        <div className="flex items-center gap-1 bg-accent-alt text-background px-2 py-1 font-mono text-xs font-bold uppercase">
-                          <TrendingUp size={12} />
-                          热门
-                        </div>
-                      </div>
-                    )}
                   </div>
 
                   {/* Post Content */}
-                  <div className="aspect-square bg-foreground border-4 border-current flex items-center justify-center relative">
+                  <div className="aspect-square bg-muted rounded-xl flex items-center justify-center relative overflow-hidden group-hover:scale-105 transition-transform duration-200">
                     <Sparkles size={48} className="text-accent" />
-                    <div className="absolute bottom-2 left-2 bg-accent text-background px-2 py-1 font-mono text-xs font-bold uppercase">
+                    <div className="absolute bottom-3 left-3 bg-white/90 backdrop-blur-sm text-foreground px-2 py-1 rounded-lg text-xs font-medium">
                       3D试穿
                     </div>
                   </div>
 
                   {/* Post Info */}
                   <div>
-                    <h3 className="font-mono font-bold text-sm uppercase tracking-wide mb-2">
+                    <h3 className="font-semibold mb-2">
                       {post.look.name}
                     </h3>
                     <div className="flex flex-wrap gap-2 mb-3">
                       {post.look.tags.map(tag => (
                         <span 
                           key={tag}
-                          className="bg-foreground text-background px-2 py-1 font-mono text-xs font-bold uppercase border-2 border-current"
+                          className="bg-accent/10 text-accent px-2 py-1 rounded-lg text-xs font-medium"
                         >
                           #{tag}
                         </span>
@@ -269,11 +227,11 @@ const HomeFeed: React.FC<HomePageProps> = ({ isActive }) => {
                   </div>
 
                   {/* Post Actions */}
-                  <div className="flex items-center justify-between pt-4 border-t-4 border-current">
+                  <div className="flex items-center justify-between pt-4 border-t border-border">
                     <div className="flex items-center gap-4">
                       <button 
                         onClick={() => handleLike(post.id)}
-                        className="flex items-center gap-2 font-mono text-sm font-bold uppercase tracking-wide hover:text-accent transition-colors"
+                        className="flex items-center gap-2 text-sm font-medium hover:text-accent transition-colors"
                       >
                         <Heart 
                           size={16} 
@@ -281,12 +239,12 @@ const HomeFeed: React.FC<HomePageProps> = ({ isActive }) => {
                         />
                         <span>{post.likes}</span>
                       </button>
-                      <button className="flex items-center gap-2 font-mono text-sm font-bold uppercase tracking-wide hover:text-accent-alt transition-colors">
+                      <button className="flex items-center gap-2 text-sm font-medium hover:text-accent transition-colors">
                         <MessageCircle size={16} />
                         <span>12</span>
                       </button>
                     </div>
-                    <button className="hover:text-accent-blue transition-colors">
+                    <button className="hover:text-accent transition-colors">
                       <Share2 size={16} />
                     </button>
                   </div>
@@ -299,21 +257,12 @@ const HomeFeed: React.FC<HomePageProps> = ({ isActive }) => {
             <Button 
               variant="secondary" 
               loading={loading}
+              showArrow
             >
               {loading ? '加载中...' : '查看更多'}
             </Button>
           </div>
         </div>
-      </section>
-
-      {/* Bottom Marquee */}
-      <section className="py-8">
-        <Marquee speed={40} className="font-display text-vw-2xl text-accent opacity-50">
-          <span className="mx-12">AI DIGITAL WARDROBE</span>
-          <span className="mx-12">3D FASHION EXPERIENCE</span>
-          <span className="mx-12">VIRTUAL STYLING</span>
-          <span className="mx-12">FUTURE OF FASHION</span>
-        </Marquee>
       </section>
     </div>
   );

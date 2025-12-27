@@ -75,9 +75,12 @@ describe('用户管理属性测试', () => {
           // Mock StorageService.getStorageStats
           const mockStats = {
             totalLooks: 5,
+            storageUsed: 256,
+            storageLimit: 1024,
+            storagePercentage: 25.5,
+            lastSaved: new Date(),
             publicLooks: 3,
-            privateLooks: 2,
-            storagePercentage: 25.5
+            privateLooks: 2
           };
           
           vi.spyOn(StorageService, 'getStorageStats').mockReturnValue(mockStats);
@@ -148,9 +151,12 @@ describe('用户管理属性测试', () => {
           
           const mockStats = {
             totalLooks: totalCount,
+            storageUsed: 256,
+            storageLimit: 1024,
+            storagePercentage: 10,
+            lastSaved: new Date(),
             publicLooks: publicCount,
-            privateLooks: privateCount,
-            storagePercentage: 10
+            privateLooks: privateCount
           };
           
           vi.spyOn(StorageService, 'getStorageStats').mockReturnValue(mockStats);
@@ -259,9 +265,12 @@ describe('用户管理属性测试', () => {
     it('应该显示存储使用率', () => {
       const mockStats = {
         totalLooks: 10,
+        storageUsed: 432,
+        storageLimit: 1024,
+        storagePercentage: 42.3,
+        lastSaved: new Date(),
         publicLooks: 5,
-        privateLooks: 5,
-        storagePercentage: 42.3
+        privateLooks: 5
       };
       
       vi.spyOn(StorageService, 'getStorageStats').mockReturnValue(mockStats);
@@ -277,9 +286,12 @@ describe('用户管理属性测试', () => {
         (percentage: number) => {
           const mockStats = {
             totalLooks: 10,
+            storageUsed: Math.round(percentage * 10.24),
+            storageLimit: 1024,
+            storagePercentage: percentage,
+            lastSaved: new Date(),
             publicLooks: 5,
-            privateLooks: 5,
-            storagePercentage: percentage
+            privateLooks: 5
           };
           
           vi.spyOn(StorageService, 'getStorageStats').mockReturnValue(mockStats);
@@ -347,9 +359,12 @@ describe('用户管理属性测试', () => {
     it('应该与存储服务数据保持同步', () => {
       const mockStats = {
         totalLooks: 15,
+        storageUsed: 668,
+        storageLimit: 1024,
+        storagePercentage: 65.2,
+        lastSaved: new Date(),
         publicLooks: 8,
-        privateLooks: 7,
-        storagePercentage: 65.2
+        privateLooks: 7
       };
       
       vi.spyOn(StorageService, 'getStorageStats').mockReturnValue(mockStats);
@@ -366,9 +381,12 @@ describe('用户管理属性测试', () => {
     it('应该处理空数据状态', () => {
       const mockStats = {
         totalLooks: 0,
+        storageUsed: 0,
+        storageLimit: 1024,
+        storagePercentage: 0,
+        lastSaved: new Date(),
         publicLooks: 0,
-        privateLooks: 0,
-        storagePercentage: 0
+        privateLooks: 0
       };
       
       vi.spyOn(StorageService, 'getStorageStats').mockReturnValue(mockStats);
