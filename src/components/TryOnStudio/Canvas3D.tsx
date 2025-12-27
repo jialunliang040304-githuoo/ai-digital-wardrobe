@@ -1,208 +1,173 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { Suspense, useRef, useState } from 'react';
+import { Canvas, useFrame } from '@react-three/fiber';
+import { OrbitControls, useGLTF, Environment, ContactShadows } from '@react-three/drei';
 import { RotateCcw, ZoomIn, ZoomOut } from 'lucide-react';
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 interface Canvas3DProps {
   className?: string;
   currentClothing?: any;
 }
 
+// Avatar组件
+function Avatar({ currentClothing }: { currentClothing?: any }) {
+  const { scene } = useGLTF('/avatar.glb');
+  const avatarRef = useRef<THREE.Group>(null);
+
+  // 复制场景以避免重复使用同一个对象
+  const clonedScene = scene.clone();
+
+  useFrame(() => {
+    // 这里可以添加动画逻辑
+  });
+
+  return (
+    <group ref={avatarRef}>
+      <primitive 
+        object={clonedScene} 
+        scale={1} 
+        position={[0, 0, 0]}
+        castShadow
+        receiveShadow
+      />
+    </group>
+  );
+}
+
+// 加载中组件
+function LoadingFallback() {
+  return (
+    <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+      <div className="text-center">
+        <div className="w-8 h-8 border-4 border-accent border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+        <p className="text-muted-foreground text-sm">加载3D模型中...</p>
+      </div>
+    </div>
+  );
+}
+
 const Canvas3D: React.FC<Canvas3DProps> = ({ className = '', currentClothing }) => {
-  const canvasRef = useRef<HTMLDivElement>(null);
-  const sceneRef = useRef<THREE.Scene>();
-  const rendererRef = useRef<THREE.WebGLRenderer>();
-  const cameraRef = useRef<THREE.PerspectiveCamera>();
-  const avatarRef = useRef<THREE.Group>();
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    if (!canvasRef.current) return;
-
-    // 初始化场景
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xf5f5f5);
-    sceneRef.current = scene;
-
-    // 初始化相机
-    const camera = new THREE.PerspectiveCamera(
-      50,
-      canvasRef.current.clientWidth / canvasRef.current.clientHeight,
-      0.1,
-      1000
-    );
-    camera.position.set(0, 1.6, 3);
-    camera.lookAt(0, 1, 0);
-    cameraRef.current = camera;
-
-    // 初始化渲染器
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(canvasRef.current.clientWidth, canvasRef.current.clientHeight);
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    renderer.outputColorSpace = THREE.SRGBColorSpace;
-    rendererRef.current = renderer;
-    canvasRef.current.appendChild(renderer.domElement);
-
-    // 添加光照
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-    scene.add(ambientLight);
-
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-    directionalLight.position.set(5, 10, 5);
-    directionalLight.castShadow = true;
-    directionalLight.shadow.mapSize.width = 2048;
-    directionalLight.shadow.mapSize.height = 2048;
-    scene.add(directionalLight);
-
-    // 添加地面
-    const groundGeometry = new THREE.CircleGeometry(2, 32);
-    const groundMaterial = new THREE.MeshLambertMaterial({ 
-      color: 0xffffff,
-      transparent: true,
-      opacity: 0.8
-    });
-    const ground = new THREE.Mesh(groundGeometry, groundMaterial);
-    ground.rotation.x = -Math.PI / 2;
-    ground.receiveShadow = true;
-    scene.add(ground);
-
-    // 加载avatar.glb模型
-    const loader = new GLTFLoader();
-    loader.load(
-      '/avatar.glb',
-      (gltf: any) => {
-        const avatar = gltf.scene;
-        avatar.scale.set(1, 1, 1);
-        avatar.position.set(0, 0, 0);
-        
-        // 启用阴影
-        avatar.traverse((child: any) => {
-          if (child instanceof THREE.Mesh) {
-            child.castShadow = true;
-            child.receiveShadow = true;
-          }
-        });
-
-        scene.add(avatar);
-        avatarRef.current = avatar;
-        setIsLoading(false);
-      },
-      (progress: any) => {
-        console.log('Loading progress:', (progress.loaded / progress.total * 100) + '%');
-      },
-      (error: any) => {
-        console.error('Error loading avatar:', error);
-        setIsLoading(false);
-      }
-    );
-
-    // 渲染循环
-    const animate = () => {
-      requestAnimationFrame(animate);
-      renderer.render(scene, camera);
-    };
-    animate();
-
-    // 处理窗口大小变化
-    const handleResize = () => {
-      if (!canvasRef.current || !camera || !renderer) return;
-      
-      const width = canvasRef.current.clientWidth;
-      const height = canvasRef.current.clientHeight;
-      
-      camera.aspect = width / height;
-      camera.updateProjectionMatrix();
-      renderer.setSize(width, height);
-    };
-
-    window.addEventListener('resize', handleResize);
-
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      if (canvasRef.current && renderer.domElement) {
-        canvasRef.current.removeChild(renderer.domElement);
-      }
-      renderer.dispose();
-    };
-  }, []);
-
-  // 处理服装换装
-  useEffect(() => {
-    if (!avatarRef.current || !currentClothing) return;
-
-    // 这里将来实现服装换装逻辑
-    console.log('应用服装:', currentClothing);
-  }, [currentClothing]);
+  const [controlsRef, setControlsRef] = useState<any>(null);
 
   const handleReset = () => {
-    if (cameraRef.current) {
-      cameraRef.current.position.set(0, 1.6, 3);
-      cameraRef.current.lookAt(0, 1, 0);
+    if (controlsRef) {
+      controlsRef.reset();
     }
   };
 
   const handleZoomIn = () => {
-    if (cameraRef.current) {
-      cameraRef.current.position.multiplyScalar(0.9);
+    if (controlsRef) {
+      controlsRef.dollyIn(0.9);
+      controlsRef.update();
     }
   };
 
   const handleZoomOut = () => {
-    if (cameraRef.current) {
-      cameraRef.current.position.multiplyScalar(1.1);
+    if (controlsRef) {
+      controlsRef.dollyOut(1.1);
+      controlsRef.update();
     }
   };
 
   return (
-    <div className={`relative bg-gradient-to-b from-gray-50 to-gray-100 rounded-lg overflow-hidden ${className}`}>
+    <div className={`relative bg-gradient-to-b from-muted to-gray-100 rounded-2xl overflow-hidden ${className}`}>
       {/* 3D场景容器 */}
-      <div 
-        ref={canvasRef}
-        className="w-full h-full relative"
-        style={{ minHeight: '400px' }}
-      >
-        {isLoading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
-            <div className="text-center">
-              <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-              <p className="text-gray-600 text-sm">加载3D模型中...</p>
-            </div>
-          </div>
-        )}
+      <div className="w-full h-full relative" style={{ minHeight: '400px' }}>
+        <Canvas
+          camera={{ 
+            position: [0, 1.6, 3], 
+            fov: 50,
+            near: 0.1,
+            far: 1000
+          }}
+          shadows
+          gl={{ 
+            antialias: true,
+            alpha: true,
+            outputColorSpace: THREE.SRGBColorSpace
+          }}
+        >
+          {/* 环境光照 */}
+          <ambientLight intensity={0.6} />
+          <directionalLight 
+            position={[5, 10, 5]} 
+            intensity={0.8}
+            castShadow
+            shadow-mapSize-width={2048}
+            shadow-mapSize-height={2048}
+          />
+
+          {/* 环境贴图 */}
+          <Environment preset="studio" />
+
+          {/* 3D模型 */}
+          <Suspense fallback={null}>
+            <Avatar currentClothing={currentClothing} />
+          </Suspense>
+
+          {/* 地面阴影 */}
+          <ContactShadows 
+            position={[0, 0, 0]} 
+            opacity={0.4} 
+            scale={2} 
+            blur={2} 
+            far={2}
+          />
+
+          {/* 轨道控制器 */}
+          <OrbitControls
+            ref={setControlsRef}
+            enablePan={true}
+            enableZoom={true}
+            enableRotate={true}
+            minDistance={1}
+            maxDistance={10}
+            target={[0, 1, 0]}
+            autoRotate={false}
+            autoRotateSpeed={0.5}
+          />
+        </Canvas>
+
+        {/* 加载状态 */}
+        <Suspense fallback={<LoadingFallback />}>
+          <div />
+        </Suspense>
       </div>
 
       {/* 3D控制按钮 */}
       <div className="absolute top-4 right-4 flex flex-col space-y-2">
         <button
           onClick={handleReset}
-          className="p-2 bg-white/80 hover:bg-white rounded-full shadow-sm transition-colors min-h-touch min-w-touch"
+          className="p-3 bg-white/90 hover:bg-white rounded-xl shadow-md transition-all duration-200 min-h-touch min-w-touch hover:shadow-lg"
           aria-label="重置视图"
         >
-          <RotateCcw size={16} />
+          <RotateCcw size={16} className="text-foreground" />
         </button>
         <button
           onClick={handleZoomIn}
-          className="p-2 bg-white/80 hover:bg-white rounded-full shadow-sm transition-colors min-h-touch min-w-touch"
+          className="p-3 bg-white/90 hover:bg-white rounded-xl shadow-md transition-all duration-200 min-h-touch min-w-touch hover:shadow-lg"
           aria-label="放大"
         >
-          <ZoomIn size={16} />
+          <ZoomIn size={16} className="text-foreground" />
         </button>
         <button
           onClick={handleZoomOut}
-          className="p-2 bg-white/80 hover:bg-white rounded-full shadow-sm transition-colors min-h-touch min-w-touch"
+          className="p-3 bg-white/90 hover:bg-white rounded-xl shadow-md transition-all duration-200 min-h-touch min-w-touch hover:shadow-lg"
           aria-label="缩小"
         >
-          <ZoomOut size={16} />
+          <ZoomOut size={16} className="text-foreground" />
         </button>
       </div>
 
       {/* 状态指示器 */}
-      <div className="absolute bottom-4 left-4 text-xs text-gray-500 bg-white/80 px-2 py-1 rounded">
-        {isLoading ? '加载中...' : '3D模型就绪'}
+      <div className="absolute bottom-4 left-4 text-xs text-muted-foreground bg-white/90 px-3 py-2 rounded-lg shadow-sm">
+        3D模型就绪
       </div>
     </div>
   );
 };
+
+// 预加载模型
+useGLTF.preload('/avatar.glb');
 
 export default Canvas3D;
