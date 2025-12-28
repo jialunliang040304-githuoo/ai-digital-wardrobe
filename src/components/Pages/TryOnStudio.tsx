@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { Save, Share, Undo2, User, Shirt, Zap, Video, Sparkles } from 'lucide-react';
 import { ClothingItem, ClothingCategory, WornClothing } from '../../types';
 import { useAppContext, actions } from '../../context/AppContext';
@@ -8,11 +8,49 @@ import SaveLookModal from '../TryOnStudio/SaveLookModal';
 import { BodyScanModal } from '../AI/BodyScanModal';
 import { ClothingCaptureModal } from '../AI/ClothingCaptureModal';
 import VideoCapture3D from '../AI/VideoCapture3D';
-import GaussianSplatViewer from '../TryOnStudio/GaussianSplatViewer';
 import { aiService, AIModelResult, GaussianSplattingTask } from '../../services/aiService';
+
+// 懒加载高斯泼溅组件
+const GaussianSplatViewer = lazy(() => import('../TryOnStudio/GaussianSplatViewer'));
 
 interface TryOnStudioProps {
   isActive: boolean;
+}
+
+// 高斯泼溅加载占位
+const GaussianLoading = () => (
+  <div className="aspect-[3/4] bg-gradient-to-b from-purple-50 to-indigo-100 rounded-2xl flex items-center justify-center">
+    <div className="text-center">
+      <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+      <p className="text-gray-600">加载高斯泼溅组件...</p>
+    </div>
+  </div>
+);
+
+// 错误边界组件
+class GaussianErrorBoundary extends React.Component<
+  { children: React.ReactNode; fallback: React.ReactNode },
+  { hasError: boolean }
+> {
+  constructor(props: any) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('高斯泼溅组件错误:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback;
+    }
+    return this.props.children;
+  }
 }
 
 const TryOnStudio: React.FC<TryOnStudioProps> = ({ isActive }) => {
@@ -28,7 +66,6 @@ const TryOnStudio: React.FC<TryOnStudioProps> = ({ isActive }) => {
   const [processingTask, setProcessingTask] = useState<GaussianSplattingTask | null>(null);
   const [viewMode, setViewMode] = useState<'simple' | 'gaussian'>('simple');
 
-  // 设置AI服务token
   useEffect(() => {
     const token = localStorage.getItem('auth_token');
     if (token) {
@@ -36,7 +73,6 @@ const TryOnStudio: React.FC<TryOnStudioProps> = ({ isActive }) => {
     }
   }, []);
 
-  // 轮询任务状态
   useEffect(() => {
     if (!processingTask || processingTask.status === 'completed' || processingTask.status === 'failed') {
       return;
@@ -109,7 +145,6 @@ const TryOnStudio: React.FC<TryOnStudioProps> = ({ isActive }) => {
     setShowClothingCaptureModal(false);
   };
 
-  // 处理视频捕捉完成
   const handleVideoCapture = async (videoBlob: Blob) => {
     try {
       let task: GaussianSplattingTask;
@@ -128,7 +163,6 @@ const TryOnStudio: React.FC<TryOnStudioProps> = ({ isActive }) => {
     }
   };
 
-  // 开始视频捕捉
   const startVideoCapture = (type: 'body' | 'clothing') => {
     setVideoCaptureType(type);
     setShowVideoCapture(true);
@@ -178,6 +212,23 @@ const TryOnStudio: React.FC<TryOnStudioProps> = ({ isActive }) => {
     return undefined;
   };
 
+  // 高斯泼溅错误回退UI
+  const GaussianFallback = () => (
+    <div className="aspect-[3/4] bg-gradient-to-b from-red-50 to-red-100 rounded-2xl flex items-center justify-center">
+      <div className="text-center p-6">
+        <div className="text-4xl mb-4">⚠️</div>
+        <h3 className="text-lg font-semibold text-red-700 mb-2">高斯泼溅组件加载失败</h3>
+        <p className="text-red-600 text-sm mb-4">请切换到简易3D模式</p>
+        <button
+          onClick={() => setViewMode('simple')}
+          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+        >
+          切换到简易3D
+        </button>
+      </div>
+    </div>
+  );
+
   if (!isActive) return null;
 
   return (
@@ -191,12 +242,6 @@ const TryOnStudio: React.FC<TryOnStudioProps> = ({ isActive }) => {
               <span className="text-sm font-medium">
                 高斯泼溅生成中 {processingTask.progress}%
               </span>
-            </div>
-            <div className="mt-2 w-full bg-blue-200 rounded-full h-1.5">
-              <div 
-                className="bg-blue-600 h-1.5 rounded-full transition-all duration-300"
-                style={{ width: `${processingTask.progress}%` }}
-              />
             </div>
           </div>
         </div>
@@ -219,20 +264,18 @@ const TryOnStudio: React.FC<TryOnStudioProps> = ({ isActive }) => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-lg font-semibold text-gray-900">AI试穿工作室</h1>
-            <p className="text-sm text-gray-600">高斯泼溅 & Luma AI 3D建模</p>
+            <p className="text-sm text-gray-600">3D虚拟试穿</p>
           </div>
           
           <div className="flex space-x-2">
-            {/* 视频扫描人体 */}
             <button
               onClick={() => startVideoCapture('body')}
               className="p-2 text-purple-600 hover:bg-purple-50 rounded-full transition-colors min-h-[44px] min-w-[44px]"
               aria-label="视频扫描人体"
-              title="视频扫描人体(高斯泼溅)"
+              title="视频扫描人体"
             >
               <Video size={18} />
             </button>
-            {/* 图片扫描人体 */}
             <button
               onClick={() => setShowBodyScanModal(true)}
               className="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-colors min-h-[44px] min-w-[44px]"
@@ -240,7 +283,6 @@ const TryOnStudio: React.FC<TryOnStudioProps> = ({ isActive }) => {
             >
               <User size={18} />
             </button>
-            {/* AI服装生成 */}
             <button
               onClick={() => setShowClothingCaptureModal(true)}
               className="p-2 text-pink-600 hover:bg-pink-50 rounded-full transition-colors min-h-[44px] min-w-[44px]"
@@ -294,10 +336,14 @@ const TryOnStudio: React.FC<TryOnStudioProps> = ({ isActive }) => {
         {viewMode === 'simple' ? (
           <Canvas3D className="aspect-[3/4]" currentClothing={state.currentLook} />
         ) : (
-          <GaussianSplatViewer 
-            splatUrl={currentGaussianModel || undefined}
-            className="aspect-[3/4]"
-          />
+          <GaussianErrorBoundary fallback={<GaussianFallback />}>
+            <Suspense fallback={<GaussianLoading />}>
+              <GaussianSplatViewer 
+                splatUrl={currentGaussianModel || undefined}
+                className="aspect-[3/4]"
+              />
+            </Suspense>
+          </GaussianErrorBoundary>
         )}
 
         {/* 当前穿着显示 */}
@@ -342,7 +388,6 @@ const TryOnStudio: React.FC<TryOnStudioProps> = ({ isActive }) => {
             ))}
           </div>
 
-          {/* 衣物轮播 */}
           <ClothingCarousel
             category={selectedCategory}
             onSelectItem={handleSelectClothing}
