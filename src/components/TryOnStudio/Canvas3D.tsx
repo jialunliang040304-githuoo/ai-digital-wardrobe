@@ -63,20 +63,28 @@ function ClothingPlane({
   );
 }
 
-// Avatar模型组件 - 简化版本，更可靠，支持CDN备用
+// Avatar模型组件 - 优先使用CDN，避免大文件问题
 function AvatarModel({ url }: { url: string }) {
   const group = useRef<THREE.Group>(null);
   const [modelUrl, setModelUrl] = useState(url);
   const [error, setError] = useState<string | null>(null);
   
-  // CDN备用URL列表
+  // CDN优先URL列表 - 把CDN放在前面
   const fallbackUrls = [
-    url, // 原始URL
-    'https://threejs.org/examples/models/gltf/RobotExpressive/RobotExpressive.glb', // Three.js官方示例
-    'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Duck/glTF-Binary/Duck.glb' // 小鸭子模型
+    'https://threejs.org/examples/models/gltf/RobotExpressive/RobotExpressive.glb', // CDN优先
+    'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Duck/glTF-Binary/Duck.glb', // 小鸭子
+    url // 本地文件最后尝试
   ];
   
   const [currentUrlIndex, setCurrentUrlIndex] = useState(0);
+  
+  // 初始化时使用CDN
+  useEffect(() => {
+    if (modelUrl === url) {
+      setModelUrl(fallbackUrls[0]); // 直接使用CDN
+      console.log('🌐 优先使用CDN模型:', fallbackUrls[0]);
+    }
+  }, []);
   
   try {
     const { scene } = useGLTF(modelUrl);
@@ -103,7 +111,8 @@ function AvatarModel({ url }: { url: string }) {
     }, [scene]);
 
     // 简化缩放逻辑
-    const scale = 1.2; // 固定缩放，避免计算错误
+    const scale = modelUrl.includes('RobotExpressive') ? 0.8 : 
+                  modelUrl.includes('Duck') ? 2.0 : 1.2;
 
     return (
       <group ref={group}>
@@ -286,9 +295,9 @@ const Canvas3D: React.FC<Canvas3DProps> = ({ className = '', currentClothing }) 
         const fileSize = response.headers.get('content-length');
         console.log(`✅ avatar.glb文件存在，大小: ${fileSize} bytes`);
         
-        // 预加载模型
-        useGLTF.preload('/avatar.glb');
-        console.log('✅ 模型预加载完成');
+        // 预加载CDN模型而不是本地大文件
+        useGLTF.preload('https://threejs.org/examples/models/gltf/RobotExpressive/RobotExpressive.glb');
+        console.log('✅ CDN模型预加载完成');
         
         // 延迟一点时间确保加载完成
         setTimeout(() => {
@@ -448,7 +457,7 @@ const Canvas3D: React.FC<Canvas3DProps> = ({ className = '', currentClothing }) 
   );
 };
 
-// 预加载模型
-useGLTF.preload('/avatar.glb');
+// 预加载CDN模型
+useGLTF.preload('https://threejs.org/examples/models/gltf/RobotExpressive/RobotExpressive.glb');
 
 export default Canvas3D;

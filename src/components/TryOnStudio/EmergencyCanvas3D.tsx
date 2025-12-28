@@ -33,17 +33,17 @@ function SimpleLoader() {
   );
 }
 
-// 最简单的Avatar组件 - 支持CDN备用
+// 最简单的Avatar组件 - 优先CDN
 function SimpleAvatar() {
   const group = useRef<THREE.Group>(null);
   const [error, setError] = useState<string | null>(null);
-  const [modelUrl, setModelUrl] = useState('/avatar.glb');
+  const [modelUrl, setModelUrl] = useState('https://threejs.org/examples/models/gltf/RobotExpressive/RobotExpressive.glb'); // 直接使用CDN
   
-  // CDN备用URL列表
+  // CDN优先URL列表
   const fallbackUrls = [
-    '/avatar.glb', // 原始URL
     'https://threejs.org/examples/models/gltf/RobotExpressive/RobotExpressive.glb', // 机器人
-    'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Duck/glTF-Binary/Duck.glb' // 小鸭子
+    'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Duck/glTF-Binary/Duck.glb', // 小鸭子
+    '/avatar.glb' // 本地文件最后
   ];
   
   const [currentUrlIndex, setCurrentUrlIndex] = useState(0);
@@ -59,7 +59,7 @@ function SimpleAvatar() {
 
     useEffect(() => {
       if (scene) {
-        console.log('✅ 紧急模式模型加载成功:', modelUrl);
+        console.log('✅ 紧急模式CDN模型加载成功:', modelUrl);
         scene.traverse((child) => {
           if (child instanceof THREE.Mesh) {
             child.castShadow = true;
@@ -69,11 +69,14 @@ function SimpleAvatar() {
       }
     }, [scene]);
 
+    const scale = modelUrl.includes('RobotExpressive') ? 0.6 : 
+                  modelUrl.includes('Duck') ? 1.8 : 1.2;
+
     return (
       <group ref={group}>
         <primitive 
           object={scene} 
-          scale={1.2}
+          scale={scale}
           position={[0, -1.5, 0]}
         />
       </group>
@@ -227,7 +230,7 @@ const EmergencyCanvas3D: React.FC<EmergencyCanvas3DProps> = ({ className = '' })
   );
 };
 
-// 预加载模型
-useGLTF.preload('/avatar.glb');
+// 预加载CDN模型
+useGLTF.preload('https://threejs.org/examples/models/gltf/RobotExpressive/RobotExpressive.glb');
 
 export default EmergencyCanvas3D;
