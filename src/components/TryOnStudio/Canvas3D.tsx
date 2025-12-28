@@ -1,318 +1,251 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { RotateCcw, ZoomIn, ZoomOut } from 'lucide-react';
+/**
+ * 3D Canvas组件 - 加载真实GLB模型
+ */
+
+import React, { Suspense, useRef, useState, useEffect } from 'react';
+import { Canvas, useFrame } from '@react-three/fiber';
+import { OrbitControls, useGLTF, Environment, ContactShadows, Html } from '@react-three/drei';
+import { RotateCcw } from 'lucide-react';
+import * as THREE from 'three';
 
 interface Canvas3DProps {
   className?: string;
   currentClothing?: any;
 }
 
-// 简化的3D人物组件 - 使用CSS 3D变换
-const Simple3DAvatar: React.FC<{ rotation: number; scale: number }> = ({ rotation, scale }) => {
+// 加载中显示
+function Loader() {
   return (
-    <div 
-      className="relative w-full h-full flex items-center justify-center"
-      style={{ 
-        perspective: '1000px',
-        perspectiveOrigin: 'center center'
-      }}
-    >
-      <div
-        className="relative"
-        style={{
-          transform: `rotateY(${rotation}deg) scale(${scale})`,
-          transformStyle: 'preserve-3d',
-          transition: 'transform 0.1s ease-out'
-        }}
-      >
-        {/* 头部 */}
-        <div 
-          className="absolute rounded-full bg-gradient-to-b from-amber-200 to-amber-300 shadow-lg"
-          style={{
-            width: '60px',
-            height: '70px',
-            left: '50%',
-            top: '0',
-            transform: 'translateX(-50%)',
-            borderRadius: '50% 50% 45% 45%'
-          }}
-        >
-          {/* 眼睛 */}
-          <div className="absolute top-6 left-3 w-2 h-2 bg-gray-800 rounded-full"></div>
-          <div className="absolute top-6 right-3 w-2 h-2 bg-gray-800 rounded-full"></div>
-          {/* 嘴巴 */}
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 w-4 h-1 bg-red-400 rounded-full"></div>
-        </div>
-        
-        {/* 脖子 */}
-        <div 
-          className="absolute bg-amber-200"
-          style={{
-            width: '20px',
-            height: '15px',
-            left: '50%',
-            top: '65px',
-            transform: 'translateX(-50%)'
-          }}
-        />
-        
-        {/* 身体/上衣 */}
-        <div 
-          className="absolute bg-gradient-to-b from-blue-500 to-blue-600 rounded-t-lg shadow-md"
-          style={{
-            width: '80px',
-            height: '100px',
-            left: '50%',
-            top: '75px',
-            transform: 'translateX(-50%)',
-            borderRadius: '10px 10px 5px 5px'
-          }}
-        >
-          {/* 衣领 */}
-          <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-6 h-3 bg-white rounded-b-full"></div>
-        </div>
-        
-        {/* 左臂 */}
-        <div 
-          className="absolute bg-gradient-to-b from-blue-500 to-blue-600 rounded-full shadow-sm"
-          style={{
-            width: '22px',
-            height: '80px',
-            left: 'calc(50% - 52px)',
-            top: '80px',
-            transform: 'rotate(10deg)'
-          }}
-        />
-        {/* 左手 */}
-        <div 
-          className="absolute bg-amber-200 rounded-full"
-          style={{
-            width: '18px',
-            height: '22px',
-            left: 'calc(50% - 50px)',
-            top: '155px'
-          }}
-        />
-        
-        {/* 右臂 */}
-        <div 
-          className="absolute bg-gradient-to-b from-blue-500 to-blue-600 rounded-full shadow-sm"
-          style={{
-            width: '22px',
-            height: '80px',
-            left: 'calc(50% + 30px)',
-            top: '80px',
-            transform: 'rotate(-10deg)'
-          }}
-        />
-        {/* 右手 */}
-        <div 
-          className="absolute bg-amber-200 rounded-full"
-          style={{
-            width: '18px',
-            height: '22px',
-            left: 'calc(50% + 32px)',
-            top: '155px'
-          }}
-        />
-        
-        {/* 裤子 */}
-        <div 
-          className="absolute bg-gradient-to-b from-gray-700 to-gray-800 shadow-md"
-          style={{
-            width: '80px',
-            height: '30px',
-            left: '50%',
-            top: '170px',
-            transform: 'translateX(-50%)',
-            borderRadius: '0 0 5px 5px'
-          }}
-        />
-        
-        {/* 左腿 */}
-        <div 
-          className="absolute bg-gradient-to-b from-gray-700 to-gray-800 rounded-b-lg shadow-sm"
-          style={{
-            width: '32px',
-            height: '90px',
-            left: 'calc(50% - 35px)',
-            top: '195px'
-          }}
-        />
-        
-        {/* 右腿 */}
-        <div 
-          className="absolute bg-gradient-to-b from-gray-700 to-gray-800 rounded-b-lg shadow-sm"
-          style={{
-            width: '32px',
-            height: '90px',
-            left: 'calc(50% + 3px)',
-            top: '195px'
-          }}
-        />
-        
-        {/* 左鞋 */}
-        <div 
-          className="absolute bg-gradient-to-r from-white to-gray-100 rounded-lg shadow-md"
-          style={{
-            width: '38px',
-            height: '18px',
-            left: 'calc(50% - 38px)',
-            top: '282px',
-            borderRadius: '5px 15px 5px 5px'
-          }}
-        />
-        
-        {/* 右鞋 */}
-        <div 
-          className="absolute bg-gradient-to-r from-gray-100 to-white rounded-lg shadow-md"
-          style={{
-            width: '38px',
-            height: '18px',
-            left: 'calc(50% + 0px)',
-            top: '282px',
-            borderRadius: '15px 5px 5px 5px'
-          }}
-        />
+    <Html center>
+      <div className="text-center">
+        <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+        <p className="text-gray-600 text-sm">加载3D模型...</p>
       </div>
-    </div>
+    </Html>
   );
-};
+}
+
+// Avatar模型组件
+function AvatarModel({ url }: { url: string }) {
+  const group = useRef<THREE.Group>(null);
+  const { scene } = useGLTF(url);
+  
+  // 自动旋转
+  useFrame((state) => {
+    if (group.current) {
+      group.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.3) * 0.1;
+    }
+  });
+
+  // 克隆场景并设置材质
+  useEffect(() => {
+    scene.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        child.castShadow = true;
+        child.receiveShadow = true;
+        if (child.material) {
+          child.material.needsUpdate = true;
+        }
+      }
+    });
+  }, [scene]);
+
+  // 计算模型边界来自动缩放和居中
+  const box = new THREE.Box3().setFromObject(scene);
+  const size = box.getSize(new THREE.Vector3());
+  const center = box.getCenter(new THREE.Vector3());
+  
+  // 计算缩放比例，使模型高度约为2.5单位
+  const maxDim = Math.max(size.x, size.y, size.z);
+  const scale = 2.5 / maxDim;
+
+  return (
+    <group ref={group}>
+      <primitive 
+        object={scene} 
+        scale={scale}
+        position={[-center.x * scale, -center.y * scale + 0.1, -center.z * scale]}
+      />
+    </group>
+  );
+}
+
+// 场景内容
+function SceneContent({ modelUrl }: { modelUrl: string }) {
+  return (
+    <>
+      {/* 光照 */}
+      <ambientLight intensity={0.5} />
+      <directionalLight
+        position={[5, 10, 5]}
+        intensity={1}
+        castShadow
+        shadow-mapSize-width={2048}
+        shadow-mapSize-height={2048}
+        shadow-camera-far={50}
+        shadow-camera-left={-10}
+        shadow-camera-right={10}
+        shadow-camera-top={10}
+        shadow-camera-bottom={-10}
+      />
+      <directionalLight position={[-5, 5, -5]} intensity={0.3} />
+      <pointLight position={[0, 10, 0]} intensity={0.5} />
+
+      {/* 环境 */}
+      <Environment preset="city" />
+
+      {/* 3D模型 */}
+      <Suspense fallback={<Loader />}>
+        <AvatarModel url={modelUrl} />
+      </Suspense>
+
+      {/* 地面阴影 */}
+      <ContactShadows
+        position={[0, 0, 0]}
+        opacity={0.4}
+        scale={10}
+        blur={2}
+        far={4}
+      />
+
+      {/* 地面 */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
+        <circleGeometry args={[3, 64]} />
+        <meshStandardMaterial color="#f0f0f0" transparent opacity={0.8} />
+      </mesh>
+
+      {/* 控制器 */}
+      <OrbitControls
+        enablePan={false}
+        enableZoom={true}
+        enableRotate={true}
+        minDistance={2}
+        maxDistance={10}
+        target={[0, 1, 0]}
+        minPolarAngle={Math.PI / 6}
+        maxPolarAngle={Math.PI / 2}
+      />
+    </>
+  );
+}
 
 const Canvas3D: React.FC<Canvas3DProps> = ({ className = '', currentClothing }) => {
-  const [rotation, setRotation] = useState(0);
-  const [scale, setScale] = useState(1);
-  const [isDragging, setIsDragging] = useState(false);
-  const [lastX, setLastX] = useState(0);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const [hasError, setHasError] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // 自动旋转
+  // 检查WebGL支持
+  const [webglSupported, setWebglSupported] = useState(true);
+  
   useEffect(() => {
-    if (!isDragging) {
-      const interval = setInterval(() => {
-        setRotation(prev => (prev + 0.5) % 360);
-      }, 50);
-      return () => clearInterval(interval);
+    try {
+      const canvas = document.createElement('canvas');
+      const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
+      if (!gl) {
+        setWebglSupported(false);
+      }
+    } catch (e) {
+      setWebglSupported(false);
     }
-  }, [isDragging]);
+  }, []);
 
-  const handleMouseDown = (e: React.MouseEvent) => {
-    setIsDragging(true);
-    setLastX(e.clientX);
-  };
+  // 预加载模型
+  useEffect(() => {
+    const loadModel = () => {
+      try {
+        setIsLoading(true);
+        useGLTF.preload('/avatar.glb');
+        setIsLoading(false);
+        setHasError(false);
+      } catch (error) {
+        console.error('模型加载失败:', error);
+        setHasError(true);
+        setIsLoading(false);
+      }
+    };
+    loadModel();
+  }, []);
 
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (isDragging) {
-      const deltaX = e.clientX - lastX;
-      setRotation(prev => prev + deltaX * 0.5);
-      setLastX(e.clientX);
-    }
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setIsDragging(true);
-    setLastX(e.touches[0].clientX);
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (isDragging) {
-      const deltaX = e.touches[0].clientX - lastX;
-      setRotation(prev => prev + deltaX * 0.5);
-      setLastX(e.touches[0].clientX);
-    }
-  };
-
-  const handleTouchEnd = () => {
-    setIsDragging(false);
-  };
-
-  const handleReset = () => {
-    setRotation(0);
-    setScale(1);
-  };
-
-  const handleZoomIn = () => {
-    setScale(prev => Math.min(prev + 0.2, 2));
-  };
-
-  const handleZoomOut = () => {
-    setScale(prev => Math.max(prev - 0.2, 0.5));
-  };
+  // WebGL不支持
+  if (!webglSupported) {
+    return (
+      <div className={`relative bg-gradient-to-b from-gray-100 to-gray-200 rounded-2xl overflow-hidden ${className}`}>
+        <div className="w-full h-full flex items-center justify-center" style={{ minHeight: '400px' }}>
+          <div className="text-center p-8">
+            <div className="text-6xl mb-4">⚠️</div>
+            <h3 className="text-xl font-semibold mb-2 text-gray-800">WebGL不支持</h3>
+            <p className="text-gray-600">请使用支持WebGL的现代浏览器</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`relative bg-gradient-to-b from-blue-50 via-purple-50 to-pink-50 rounded-2xl overflow-hidden ${className}`}>
-      {/* 3D场景容器 */}
-      <div 
-        ref={containerRef}
-        className="w-full h-full relative cursor-grab active:cursor-grabbing" 
-        style={{ minHeight: '400px' }}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-      >
-        {/* 背景装饰 */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-10 left-10 w-20 h-20 bg-blue-200/30 rounded-full blur-xl"></div>
-          <div className="absolute bottom-20 right-10 w-32 h-32 bg-purple-200/30 rounded-full blur-xl"></div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-40 h-40 bg-pink-200/20 rounded-full blur-2xl"></div>
-        </div>
-
-        {/* 地面阴影 */}
-        <div 
-          className="absolute bottom-8 left-1/2 transform -translate-x-1/2 bg-gray-400/20 rounded-full blur-md"
-          style={{
-            width: '120px',
-            height: '20px',
-            transform: `translateX(-50%) scaleX(${scale})`
+      <div className="w-full h-full" style={{ minHeight: '400px' }}>
+        <Canvas
+          shadows
+          camera={{ position: [0, 1.5, 5], fov: 45 }}
+          gl={{ 
+            antialias: true, 
+            alpha: true,
+            powerPreference: 'high-performance'
           }}
-        />
-
-        {/* 3D人物 */}
-        <Simple3DAvatar rotation={rotation} scale={scale} />
-
-        {/* 交互提示 */}
-        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-xs text-gray-500 bg-white/80 px-3 py-1 rounded-full backdrop-blur-sm">
-          拖动旋转 • 双指缩放
-        </div>
+          onCreated={({ gl }) => {
+            gl.shadowMap.enabled = true;
+            gl.shadowMap.type = THREE.PCFSoftShadowMap;
+            gl.outputColorSpace = THREE.SRGBColorSpace;
+          }}
+          onError={() => setHasError(true)}
+        >
+          <color attach="background" args={['#f8fafc']} />
+          <SceneContent modelUrl="/avatar.glb" />
+        </Canvas>
       </div>
 
-      {/* 3D控制按钮 */}
+      {/* 加载状态覆盖 */}
+      {isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-white/80 backdrop-blur-sm rounded-2xl">
+          <div className="text-center">
+            <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-600 font-medium">加载3D模型中...</p>
+          </div>
+        </div>
+      )}
+
+      {/* 错误状态 */}
+      {hasError && !isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-red-50/90 backdrop-blur-sm rounded-2xl">
+          <div className="text-center p-6">
+            <div className="text-4xl mb-4">❌</div>
+            <h3 className="text-lg font-semibold text-red-700 mb-2">模型加载失败</h3>
+            <p className="text-red-600 text-sm mb-4">请检查avatar.glb文件是否存在</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+            >
+              重新加载
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 控制按钮 */}
       <div className="absolute top-4 right-4 flex flex-col space-y-2">
         <button
-          onClick={handleReset}
-          className="p-3 bg-white/90 hover:bg-white rounded-xl shadow-lg transition-all duration-200 min-h-[44px] min-w-[44px] hover:shadow-xl backdrop-blur-sm"
+          onClick={() => window.location.reload()}
+          className="p-3 bg-white/90 hover:bg-white rounded-xl shadow-lg transition-all min-h-[44px] min-w-[44px]"
           aria-label="重置视图"
         >
           <RotateCcw size={16} className="text-gray-700" />
         </button>
-        <button
-          onClick={handleZoomIn}
-          className="p-3 bg-white/90 hover:bg-white rounded-xl shadow-lg transition-all duration-200 min-h-[44px] min-w-[44px] hover:shadow-xl backdrop-blur-sm"
-          aria-label="放大"
-        >
-          <ZoomIn size={16} className="text-gray-700" />
-        </button>
-        <button
-          onClick={handleZoomOut}
-          className="p-3 bg-white/90 hover:bg-white rounded-xl shadow-lg transition-all duration-200 min-h-[44px] min-w-[44px] hover:shadow-xl backdrop-blur-sm"
-          aria-label="缩小"
-        >
-          <ZoomOut size={16} className="text-gray-700" />
-        </button>
       </div>
 
       {/* 状态指示器 */}
-      <div className="absolute bottom-4 left-4 text-xs text-gray-600 bg-white/90 px-3 py-2 rounded-lg shadow-sm backdrop-blur-sm">
+      <div className="absolute bottom-4 left-4 text-xs text-gray-600 bg-white/90 px-3 py-2 rounded-lg shadow-sm">
         <div className="flex items-center gap-2">
-          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-          3D试穿工作室
+          <div className={`w-2 h-2 rounded-full ${hasError ? 'bg-red-500' : 'bg-green-500'} animate-pulse`}></div>
+          {hasError ? '模型加载失败' : '3D试穿工作室'}
         </div>
       </div>
 
@@ -328,8 +261,16 @@ const Canvas3D: React.FC<Canvas3DProps> = ({ className = '', currentClothing }) 
           </div>
         </div>
       )}
+
+      {/* 操作提示 */}
+      <div className="absolute bottom-4 right-4 text-xs text-gray-500 bg-white/80 px-2 py-1 rounded">
+        拖动旋转 • 滚轮缩放
+      </div>
     </div>
   );
 };
+
+// 预加载模型
+useGLTF.preload('/avatar.glb');
 
 export default Canvas3D;
