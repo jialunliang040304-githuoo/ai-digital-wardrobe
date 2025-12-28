@@ -24,7 +24,7 @@ const Scan: React.FC<ScanProps> = ({ isActive }) => {
           通过身体扫描创建专属的3D虚拟形象，让试穿效果更加真实
         </p>
         
-        <button className="btn-primary flex items-center space-x-2">
+        <button className="w-full bg-primary-500 text-white py-3 px-6 rounded-lg font-medium hover:bg-primary-600 transition-colors min-h-touch flex items-center justify-center space-x-2">
           <Camera size={18} className="sm:w-5 sm:h-5" />
           <span className="text-sm sm:text-base">开始扫描</span>
         </button>

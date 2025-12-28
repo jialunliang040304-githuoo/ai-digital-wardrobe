@@ -11,6 +11,7 @@ import VideoCapture3D from '../AI/VideoCapture3D';
 import ClothingUploader from '../AI/ClothingUploader';
 import SmartRecommendation from '../AI/SmartRecommendation';
 import ColorMatcher from '../Wardrobe/ColorMatcher';
+import SafeErrorBoundary from '../UI/SafeErrorBoundary';
 import { aiService, AIModelResult, GaussianSplattingTask } from '../../services/aiService';
 
 // 懒加载高斯泼溅组件
@@ -397,18 +398,36 @@ const TryOnStudio: React.FC<TryOnStudioProps> = ({ isActive }) => {
         </div>
 
         {/* 3D Canvas 区域 */}
-        {viewMode === 'simple' ? (
-          <Canvas3D className="aspect-[3/4]" currentClothing={state.currentLook} />
-        ) : (
-          <GaussianErrorBoundary fallback={<GaussianFallback />}>
-            <Suspense fallback={<GaussianLoading />}>
-              <GaussianSplatViewer 
-                splatUrl={currentGaussianModel || undefined}
-                className="aspect-[3/4]"
-              />
-            </Suspense>
-          </GaussianErrorBoundary>
-        )}
+        <SafeErrorBoundary
+          fallback={
+            <div className="aspect-[3/4] bg-gradient-to-b from-red-50 to-red-100 rounded-2xl flex items-center justify-center">
+              <div className="text-center p-6">
+                <div className="text-4xl mb-4">🔧</div>
+                <h3 className="text-lg font-semibold text-red-700 mb-2">3D渲染暂时不可用</h3>
+                <p className="text-red-600 text-sm mb-4">请刷新页面重试</p>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                >
+                  刷新页面
+                </button>
+              </div>
+            </div>
+          }
+        >
+          {viewMode === 'simple' ? (
+            <Canvas3D className="aspect-[3/4]" currentClothing={state.currentLook} />
+          ) : (
+            <GaussianErrorBoundary fallback={<GaussianFallback />}>
+              <Suspense fallback={<GaussianLoading />}>
+                <GaussianSplatViewer 
+                  splatUrl={currentGaussianModel || undefined}
+                  className="aspect-[3/4]"
+                />
+              </Suspense>
+            </GaussianErrorBoundary>
+          )}
+        </SafeErrorBoundary>
 
         {/* 当前穿着显示 */}
         <div className="bg-white rounded-lg p-4">

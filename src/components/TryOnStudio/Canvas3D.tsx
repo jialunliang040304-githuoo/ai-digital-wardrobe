@@ -194,40 +194,61 @@ function SceneContent({
 const Canvas3D: React.FC<Canvas3DProps> = ({ className = '', currentClothing }) => {
   const [hasError, setHasError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [webglSupported, setWebglSupported] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string>('');
 
   // 检查WebGL支持
-  const [webglSupported, setWebglSupported] = useState(true);
-  
   useEffect(() => {
     try {
       const canvas = document.createElement('canvas');
       const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
       if (!gl) {
         setWebglSupported(false);
+        setErrorMessage('您的浏览器不支持WebGL，无法显示3D内容');
       }
     } catch (e) {
+      console.error('WebGL检测失败:', e);
       setWebglSupported(false);
+      setErrorMessage('WebGL初始化失败');
     }
   }, []);
 
   // 预加载模型
   useEffect(() => {
-    const loadModel = () => {
+    if (!webglSupported) return;
+    
+    const loadModel = async () => {
       try {
         setIsLoading(true);
+        setHasError(false);
+        
+        // 检查模型文件是否存在
+        const response = await fetch('/avatar.glb');
+        if (!response.ok) {
+          throw new Error(`模型文件加载失败: ${response.status}`);
+        }
+        
         useGLTF.preload('/avatar.glb');
         setIsLoading(false);
-        setHasError(false);
       } catch (error) {
         console.error('模型加载失败:', error);
         setHasError(true);
         setIsLoading(false);
+        setErrorMessage(error instanceof Error ? error.message : '模型加载失败');
       }
     };
+    
     loadModel();
-  }, []);
+  }, [webglSupported]);
 
-  // WebGL不支持
+  // 错误处理函数
+  const handleCanvasError = (error: any) => {
+    console.error('Canvas渲染错误:', error);
+    setHasError(true);
+    setErrorMessage('3D渲染出现错误');
+  };
+
+  // WebGL不支持的回退UI
   if (!webglSupported) {
     return (
       <div className={`relative bg-gradient-to-b from-gray-100 to-gray-200 rounded-2xl overflow-hidden ${className}`}>
@@ -235,7 +256,33 @@ const Canvas3D: React.FC<Canvas3DProps> = ({ className = '', currentClothing }) 
           <div className="text-center p-8">
             <div className="text-6xl mb-4">⚠️</div>
             <h3 className="text-xl font-semibold mb-2 text-gray-800">WebGL不支持</h3>
-            <p className="text-gray-600">请使用支持WebGL的现代浏览器</p>
+            <p className="text-gray-600 mb-4">{errorMessage}</p>
+            <p className="text-sm text-gray-500">请使用支持WebGL的现代浏览器</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 错误状态的回退UI
+  if (hasError) {
+    return (
+      <div className={`relative bg-gradient-to-b from-red-50 to-red-100 rounded-2xl overflow-hidden ${className}`}>
+        <div className="w-full h-full flex items-center justify-center" style={{ minHeight: '400px' }}>
+          <div className="text-center p-6">
+            <div className="text-4xl mb-4">❌</div>
+            <h3 className="text-lg font-semibold text-red-700 mb-2">3D模型加载失败</h3>
+            <p className="text-red-600 text-sm mb-4">{errorMessage}</p>
+            <button
+              onClick={() => {
+                setHasError(false);
+                setIsLoading(true);
+                window.location.reload();
+              }}
+              className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+            >
+              重新加载
+            </button>
           </div>
         </div>
       </div>
@@ -254,11 +301,16 @@ const Canvas3D: React.FC<Canvas3DProps> = ({ className = '', currentClothing }) 
             powerPreference: 'high-performance'
           }}
           onCreated={({ gl }) => {
-            gl.shadowMap.enabled = true;
-            gl.shadowMap.type = THREE.PCFSoftShadowMap;
-            gl.outputColorSpace = THREE.SRGBColorSpace;
+            try {
+              gl.shadowMap.enabled = true;
+              gl.shadowMap.type = THREE.PCFSoftShadowMap;
+              gl.outputColorSpace = THREE.SRGBColorSpace;
+            } catch (error) {
+              console.error('Canvas初始化错误:', error);
+              handleCanvasError(error);
+            }
           }}
-          onError={() => setHasError(true)}
+          onError={handleCanvasError}
         >
           <color attach="background" args={['#f8fafc']} />
           <SceneContent modelUrl="/avatar.glb" currentClothing={currentClothing} />
