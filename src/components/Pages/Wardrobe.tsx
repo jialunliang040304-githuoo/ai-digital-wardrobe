@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Plus, Search, Camera } from 'lucide-react';
+import { Plus, Search, Camera, Calendar, Palette } from 'lucide-react';
 import { useAppContext, actions } from '../../context/AppContext';
 import { ClothingItem, ClothingCategory } from '../../types';
 import CategoryFilter from '../Wardrobe/CategoryFilter';
 import WardrobeGrid from '../Wardrobe/WardrobeGrid';
 import ClothingUploader from '../AI/ClothingUploader';
+import ColorMatcher from '../Wardrobe/ColorMatcher';
+import OutfitCalendar from '../Social/OutfitCalendar';
 
 interface WardrobeProps {
   isActive: boolean;
@@ -86,6 +88,8 @@ const Wardrobe: React.FC<WardrobeProps> = ({ isActive }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [showUploader, setShowUploader] = useState(false);
+  const [showColorMatcher, setShowColorMatcher] = useState(false);
+  const [showCalendar, setShowCalendar] = useState(false);
 
   // 初始化衣柜数据
   useEffect(() => {
@@ -190,6 +194,27 @@ const Wardrobe: React.FC<WardrobeProps> = ({ isActive }) => {
     dispatch(actions.addClothingItem(newItem));
   };
 
+  // 处理颜色匹配
+  const handleColorMatch = (items: ClothingItem[]) => {
+    // 切换到试穿工作室并应用搭配
+    dispatch(actions.setActiveTab('studio'));
+    items.forEach(item => {
+      const slot = item.category === 'accessories' ? 'accessories' : 
+                   item.category === 'tops' ? 'top' :
+                   item.category === 'bottoms' ? 'bottom' :
+                   item.category === 'shoes' ? 'shoes' : 'top';
+      dispatch(actions.wearClothing(item, slot));
+    });
+    setShowColorMatcher(false);
+  };
+
+  // 处理创建穿搭记录
+  const handleCreateOutfit = (date: Date) => {
+    // 切换到试穿工作室
+    dispatch(actions.setActiveTab('studio'));
+    setShowCalendar(false);
+  };
+
   return (
     <div className="h-full overflow-y-auto">
       <div className="p-4 xs:p-3 sm:p-6">
@@ -200,13 +225,29 @@ const Wardrobe: React.FC<WardrobeProps> = ({ isActive }) => {
               <h1 className="text-xl sm:text-2xl font-bold text-gray-900">我的数字衣柜</h1>
               <p className="text-gray-600 mt-1 text-sm sm:text-base">管理你的3D服装收藏</p>
             </div>
-            <button 
-              onClick={() => setShowUploader(true)}
-              className="p-2 bg-primary-500 text-white rounded-full hover:bg-primary-600 transition-colors min-h-touch min-w-touch flex items-center gap-1"
-            >
-              <Camera size={18} />
-              <Plus size={16} />
-            </button>
+            <div className="flex gap-2">
+              <button 
+                onClick={() => setShowUploader(true)}
+                className="p-2 bg-primary-500 text-white rounded-full hover:bg-primary-600 transition-colors min-h-touch min-w-touch flex items-center gap-1"
+              >
+                <Camera size={18} />
+                <Plus size={16} />
+              </button>
+              <button 
+                onClick={() => setShowColorMatcher(true)}
+                className="p-2 bg-pink-500 text-white rounded-full hover:bg-pink-600 transition-colors min-h-touch min-w-touch"
+                title="颜色搭配助手"
+              >
+                <Palette size={18} />
+              </button>
+              <button 
+                onClick={() => setShowCalendar(true)}
+                className="p-2 bg-green-500 text-white rounded-full hover:bg-green-600 transition-colors min-h-touch min-w-touch"
+                title="穿搭日历"
+              >
+                <Calendar size={18} />
+              </button>
+            </div>
           </div>
 
           {/* 搜索框 */}
@@ -263,6 +304,19 @@ const Wardrobe: React.FC<WardrobeProps> = ({ isActive }) => {
           isOpen={showUploader}
           onClose={() => setShowUploader(false)}
           onUpload={handleClothingUpload}
+        />
+
+        <ColorMatcher
+          isOpen={showColorMatcher}
+          onClose={() => setShowColorMatcher(false)}
+          availableItems={state.wardrobe}
+          onSelectMatch={handleColorMatch}
+        />
+
+        <OutfitCalendar
+          isOpen={showCalendar}
+          onClose={() => setShowCalendar(false)}
+          onCreateOutfit={handleCreateOutfit}
         />
       </div>
     </div>

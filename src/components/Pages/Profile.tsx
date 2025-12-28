@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
-import { Camera, Settings, User, Heart, Eye, Calendar, Share2 } from 'lucide-react';
-import { useAppContext } from '../../context/AppContext';
+import { Camera, Settings, User, Heart, Eye, Calendar as CalendarIcon, Share2 } from 'lucide-react';
+import { useAppContext, actions } from '../../context/AppContext';
 import { StorageService } from '../../services/storageService';
+import OutfitCalendar from '../Social/OutfitCalendar';
 
 interface ProfileProps {
   isActive: boolean;
 }
 
 const Profile: React.FC<ProfileProps> = ({ isActive }) => {
-  const { state } = useAppContext();
+  const { state, dispatch } = useAppContext();
   const [showSettings, setShowSettings] = useState(false);
+  const [showCalendar, setShowCalendar] = useState(false);
   
   // 获取用户统计数据
   const stats = StorageService.getStorageStats();
@@ -20,6 +22,13 @@ const Profile: React.FC<ProfileProps> = ({ isActive }) => {
     followers: state.user?.stats?.followers || 0,
     following: state.user?.stats?.following || 0
   };
+  // 处理创建穿搭记录
+  const handleCreateOutfit = (date: Date) => {
+    // 切换到试穿工作室
+    dispatch(actions.setActiveTab('studio'));
+    setShowCalendar(false);
+  };
+  
   return (
     <div className="h-full p-4 xs:p-3 sm:p-6">
       {/* 用户信息 */}
@@ -74,7 +83,7 @@ const Profile: React.FC<ProfileProps> = ({ isActive }) => {
               <span className="font-medium text-gray-900">{userStats.privateLooks}</span>
             </div>
             <div className="flex items-center space-x-2">
-              <Calendar size={16} className="text-gray-500" />
+              <CalendarIcon size={16} className="text-gray-500" />
               <span className="text-gray-600">本月创建</span>
               <span className="font-medium text-gray-900">{Math.min(userStats.looksCreated, 5)}</span>
             </div>
@@ -159,6 +168,14 @@ const Profile: React.FC<ProfileProps> = ({ isActive }) => {
               <div className="text-sm font-medium text-gray-900">收藏夹</div>
               <div className="text-xs text-gray-500 mt-1">0 个</div>
             </button>
+            
+            <button 
+              onClick={() => setShowCalendar(true)}
+              className="p-3 bg-gray-50 rounded-lg text-left hover:bg-gray-100 transition-colors min-h-touch"
+            >
+              <div className="text-sm font-medium text-gray-900">穿搭日历</div>
+              <div className="text-xs text-gray-500 mt-1">查看记录</div>
+            </button>
           </div>
         </div>
       </div>
@@ -206,6 +223,12 @@ const Profile: React.FC<ProfileProps> = ({ isActive }) => {
           <span className="text-xs text-gray-400">→</span>
         </button>
       </div>
+      
+      <OutfitCalendar
+        isOpen={showCalendar}
+        onClose={() => setShowCalendar(false)}
+        onCreateOutfit={handleCreateOutfit}
+      />
     </div>
   );
 };

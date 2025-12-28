@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Suspense, lazy } from 'react';
-import { Save, Share, Undo2, User, Shirt, Zap, Video, Sparkles, Upload } from 'lucide-react';
+import { Save, Share, Undo2, User, Shirt, Zap, Video, Sparkles, Upload, Lightbulb, Calendar } from 'lucide-react';
 import { ClothingItem, ClothingCategory, WornClothing } from '../../types';
 import { useAppContext, actions } from '../../context/AppContext';
 import Canvas3D from '../TryOnStudio/Canvas3D';
@@ -9,6 +9,8 @@ import { BodyScanModal } from '../AI/BodyScanModal';
 import { ClothingCaptureModal } from '../AI/ClothingCaptureModal';
 import VideoCapture3D from '../AI/VideoCapture3D';
 import ClothingUploader from '../AI/ClothingUploader';
+import SmartRecommendation from '../AI/SmartRecommendation';
+import ColorMatcher from '../Wardrobe/ColorMatcher';
 import { aiService, AIModelResult, GaussianSplattingTask } from '../../services/aiService';
 
 // 懒加载高斯泼溅组件
@@ -67,6 +69,8 @@ const TryOnStudio: React.FC<TryOnStudioProps> = ({ isActive }) => {
   const [processingTask, setProcessingTask] = useState<GaussianSplattingTask | null>(null);
   const [viewMode, setViewMode] = useState<'simple' | 'gaussian'>('simple');
   const [showClothingUploader, setShowClothingUploader] = useState(false);
+  const [showSmartRecommendation, setShowSmartRecommendation] = useState(false);
+  const [showColorMatcher, setShowColorMatcher] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('auth_token');
@@ -188,6 +192,30 @@ const TryOnStudio: React.FC<TryOnStudioProps> = ({ isActive }) => {
     setSelectedCategory(category);
   };
 
+  // 处理智能推荐
+  const handleApplyRecommendation = (items: ClothingItem[]) => {
+    items.forEach(item => {
+      const slot = item.category === 'accessories' ? 'accessories' : 
+                   item.category === 'tops' ? 'top' :
+                   item.category === 'bottoms' ? 'bottom' :
+                   item.category === 'shoes' ? 'shoes' : 'top';
+      dispatch(actions.wearClothing(item, slot));
+    });
+    setShowSmartRecommendation(false);
+  };
+
+  // 处理颜色匹配
+  const handleColorMatch = (items: ClothingItem[]) => {
+    items.forEach(item => {
+      const slot = item.category === 'accessories' ? 'accessories' : 
+                   item.category === 'tops' ? 'top' :
+                   item.category === 'bottoms' ? 'bottom' :
+                   item.category === 'shoes' ? 'shoes' : 'top';
+      dispatch(actions.wearClothing(item, slot));
+    });
+    setShowColorMatcher(false);
+  };
+
   const handleSaveLook = () => {
     const hasClothing = state.currentLook.top || 
                        state.currentLook.bottom || 
@@ -288,6 +316,14 @@ const TryOnStudio: React.FC<TryOnStudioProps> = ({ isActive }) => {
           </div>
           
           <div className="flex space-x-2">
+            <button
+              onClick={() => setShowSmartRecommendation(true)}
+              className="p-2 text-purple-600 hover:bg-purple-50 rounded-full transition-colors min-h-[44px] min-w-[44px]"
+              aria-label="智能推荐"
+              title="AI智能推荐搭配"
+            >
+              <Lightbulb size={18} />
+            </button>
             <button
               onClick={() => setShowClothingUploader(true)}
               className="p-2 text-green-600 hover:bg-green-50 rounded-full transition-colors min-h-[44px] min-w-[44px]"
@@ -414,6 +450,12 @@ const TryOnStudio: React.FC<TryOnStudioProps> = ({ isActive }) => {
                 {getCategoryLabel(category)}
               </button>
             ))}
+            <button
+              onClick={() => setShowColorMatcher(true)}
+              className="flex-shrink-0 px-3 py-2 rounded-lg text-sm font-medium bg-pink-100 text-pink-700 hover:bg-pink-200 transition-colors min-h-[44px]"
+            >
+              🎨 颜色搭配
+            </button>
           </div>
 
           <ClothingCarousel
@@ -465,6 +507,19 @@ const TryOnStudio: React.FC<TryOnStudioProps> = ({ isActive }) => {
         isOpen={showClothingUploader}
         onClose={() => setShowClothingUploader(false)}
         onUpload={handleClothingUpload}
+      />
+
+      <SmartRecommendation
+        isOpen={showSmartRecommendation}
+        onClose={() => setShowSmartRecommendation(false)}
+        onApplyRecommendation={handleApplyRecommendation}
+      />
+
+      <ColorMatcher
+        isOpen={showColorMatcher}
+        onClose={() => setShowColorMatcher(false)}
+        availableItems={state.wardrobe}
+        onSelectMatch={handleColorMatch}
       />
     </div>
   );
