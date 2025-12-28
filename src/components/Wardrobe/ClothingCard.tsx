@@ -54,7 +54,15 @@ const ClothingCard: React.FC<ClothingCardProps> = ({
     >
       {/* 3D模型预览区域 */}
       <div className="aspect-square bg-gray-100 rounded-t-lg flex items-center justify-center relative overflow-hidden">
-        <span className="text-gray-500 text-sm">3D模型</span>
+        {item.texture && item.texture.startsWith('data:image') ? (
+          <img 
+            src={item.texture} 
+            alt={item.name}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <span className="text-gray-500 text-sm">3D模型</span>
+        )}
         
         {/* 分类标签 */}
         <div className="absolute top-2 left-2">

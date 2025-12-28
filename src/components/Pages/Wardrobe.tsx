@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Plus, Search } from 'lucide-react';
+import { Plus, Search, Camera } from 'lucide-react';
 import { useAppContext, actions } from '../../context/AppContext';
 import { ClothingItem, ClothingCategory } from '../../types';
 import CategoryFilter from '../Wardrobe/CategoryFilter';
 import WardrobeGrid from '../Wardrobe/WardrobeGrid';
+import ClothingUploader from '../AI/ClothingUploader';
 
 interface WardrobeProps {
   isActive: boolean;
@@ -84,6 +85,7 @@ const Wardrobe: React.FC<WardrobeProps> = ({ isActive }) => {
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const [showUploader, setShowUploader] = useState(false);
 
   // 初始化衣柜数据
   useEffect(() => {
@@ -172,6 +174,22 @@ const Wardrobe: React.FC<WardrobeProps> = ({ isActive }) => {
     }
   };
 
+  // 处理服装上传
+  const handleClothingUpload = (imageData: string, category: ClothingCategory, name: string) => {
+    const newItem: ClothingItem = {
+      id: `uploaded-${Date.now()}`,
+      name,
+      category,
+      type: 'custom',
+      meshData: '',
+      texture: imageData,
+      mountPoints: [],
+      tags: ['自定义', '上传'],
+      createdAt: new Date()
+    };
+    dispatch(actions.addClothingItem(newItem));
+  };
+
   return (
     <div className="h-full overflow-y-auto">
       <div className="p-4 xs:p-3 sm:p-6">
@@ -182,8 +200,12 @@ const Wardrobe: React.FC<WardrobeProps> = ({ isActive }) => {
               <h1 className="text-xl sm:text-2xl font-bold text-gray-900">我的数字衣柜</h1>
               <p className="text-gray-600 mt-1 text-sm sm:text-base">管理你的3D服装收藏</p>
             </div>
-            <button className="p-2 bg-primary-500 text-white rounded-full hover:bg-primary-600 transition-colors min-h-touch min-w-touch">
-              <Plus size={20} />
+            <button 
+              onClick={() => setShowUploader(true)}
+              className="p-2 bg-primary-500 text-white rounded-full hover:bg-primary-600 transition-colors min-h-touch min-w-touch flex items-center gap-1"
+            >
+              <Camera size={18} />
+              <Plus size={16} />
             </button>
           </div>
 
@@ -235,6 +257,13 @@ const Wardrobe: React.FC<WardrobeProps> = ({ isActive }) => {
             </button>
           </div>
         )}
+
+        {/* 服装上传组件 */}
+        <ClothingUploader
+          isOpen={showUploader}
+          onClose={() => setShowUploader(false)}
+          onUpload={handleClothingUpload}
+        />
       </div>
     </div>
   );
