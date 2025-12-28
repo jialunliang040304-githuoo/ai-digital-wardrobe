@@ -109,7 +109,15 @@ const ClothingCarousel: React.FC<ClothingCarouselProps> = ({
             >
               {/* 3D模型缩略图 */}
               <div className="w-full h-full bg-gray-100 rounded-lg flex items-center justify-center relative overflow-hidden">
-                <span className="text-xs text-gray-500">3D</span>
+                {item.texture && item.texture.startsWith('data:image') ? (
+                  <img 
+                    src={item.texture} 
+                    alt={item.name}
+                    className="w-full h-full object-cover rounded-lg"
+                  />
+                ) : (
+                  <span className="text-xs text-gray-500">3D</span>
+                )}
                 
                 {/* 选中指示器 */}
                 {selectedItem?.id === item.id && (
