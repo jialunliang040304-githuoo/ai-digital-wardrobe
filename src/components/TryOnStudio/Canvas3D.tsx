@@ -1,16 +1,21 @@
 /**
- * 3D Canvas组件 - 加载真实GLB模型
+ * 3D Canvas组件 - 加载真实GLB模型并显示服装
  */
 
 import React, { Suspense, useRef, useState, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, useGLTF, Environment, ContactShadows, Html } from '@react-three/drei';
+import { OrbitControls, useGLTF, Environment, ContactShadows, Html, useTexture } from '@react-three/drei';
 import { RotateCcw } from 'lucide-react';
 import * as THREE from 'three';
 
 interface Canvas3DProps {
   className?: string;
-  currentClothing?: any;
+  currentClothing?: {
+    top?: { texture?: string; name?: string };
+    bottom?: { texture?: string; name?: string };
+    shoes?: { texture?: string; name?: string };
+    accessories?: Array<{ texture?: string; name?: string }>;
+  };
 }
 
 // 加载中显示
@@ -25,19 +30,50 @@ function Loader() {
   );
 }
 
+// 服装贴图平面组件
+function ClothingPlane({ 
+  textureUrl, 
+  position, 
+  scale = [0.8, 0.8, 1],
+  rotation = [0, 0, 0]
+}: { 
+  textureUrl: string; 
+  position: [number, number, number];
+  scale?: [number, number, number];
+  rotation?: [number, number, number];
+}) {
+  const meshRef = useRef<THREE.Mesh>(null);
+  
+  // 创建纹理
+  const texture = useTexture(textureUrl);
+  texture.colorSpace = THREE.SRGBColorSpace;
+
+  useFrame((state) => {
+    if (meshRef.current) {
+      // 轻微浮动效果
+      meshRef.current.position.y = position[1] + Math.sin(state.clock.elapsedTime * 2) * 0.02;
+    }
+  });
+
+  return (
+    <mesh ref={meshRef} position={position} rotation={rotation as any}>
+      <planeGeometry args={[scale[0], scale[1]]} />
+      <meshBasicMaterial map={texture} transparent side={THREE.DoubleSide} />
+    </mesh>
+  );
+}
+
 // Avatar模型组件
 function AvatarModel({ url }: { url: string }) {
   const group = useRef<THREE.Group>(null);
   const { scene } = useGLTF(url);
   
-  // 自动旋转
   useFrame((state) => {
     if (group.current) {
       group.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.3) * 0.1;
     }
   });
 
-  // 克隆场景并设置材质
   useEffect(() => {
     scene.traverse((child) => {
       if (child instanceof THREE.Mesh) {
@@ -50,12 +86,9 @@ function AvatarModel({ url }: { url: string }) {
     });
   }, [scene]);
 
-  // 计算模型边界来自动缩放和居中
   const box = new THREE.Box3().setFromObject(scene);
   const size = box.getSize(new THREE.Vector3());
   const center = box.getCenter(new THREE.Vector3());
-  
-  // 计算缩放比例，使模型高度约为2.5单位
   const maxDim = Math.max(size.x, size.y, size.z);
   const scale = 2.5 / maxDim;
 
@@ -71,10 +104,15 @@ function AvatarModel({ url }: { url: string }) {
 }
 
 // 场景内容
-function SceneContent({ modelUrl }: { modelUrl: string }) {
+function SceneContent({ 
+  modelUrl, 
+  currentClothing 
+}: { 
+  modelUrl: string;
+  currentClothing?: Canvas3DProps['currentClothing'];
+}) {
   return (
     <>
-      {/* 光照 */}
       <ambientLight intensity={0.5} />
       <directionalLight
         position={[5, 10, 5]}
@@ -82,39 +120,63 @@ function SceneContent({ modelUrl }: { modelUrl: string }) {
         castShadow
         shadow-mapSize-width={2048}
         shadow-mapSize-height={2048}
-        shadow-camera-far={50}
-        shadow-camera-left={-10}
-        shadow-camera-right={10}
-        shadow-camera-top={10}
-        shadow-camera-bottom={-10}
       />
       <directionalLight position={[-5, 5, -5]} intensity={0.3} />
       <pointLight position={[0, 10, 0]} intensity={0.5} />
 
-      {/* 环境 */}
       <Environment preset="city" />
 
-      {/* 3D模型 */}
       <Suspense fallback={<Loader />}>
         <AvatarModel url={modelUrl} />
+        
+        {/* 显示上装 */}
+        {currentClothing?.top?.texture && currentClothing.top.texture.startsWith('data:image') && (
+          <ClothingPlane 
+            textureUrl={currentClothing.top.texture}
+            position={[0.8, 1.3, 0.5]}
+            scale={[0.6, 0.6, 1]}
+            rotation={[0, -0.3, 0]}
+          />
+        )}
+        
+        {/* 显示下装 */}
+        {currentClothing?.bottom?.texture && currentClothing.bottom.texture.startsWith('data:image') && (
+          <ClothingPlane 
+            textureUrl={currentClothing.bottom.texture}
+            position={[-0.8, 0.8, 0.5]}
+            scale={[0.5, 0.6, 1]}
+            rotation={[0, 0.3, 0]}
+          />
+        )}
+        
+        {/* 显示鞋子 */}
+        {currentClothing?.shoes?.texture && currentClothing.shoes.texture.startsWith('data:image') && (
+          <ClothingPlane 
+            textureUrl={currentClothing.shoes.texture}
+            position={[0.8, 0.3, 0.5]}
+            scale={[0.4, 0.4, 1]}
+            rotation={[0, -0.2, 0]}
+          />
+        )}
+        
+        {/* 显示配饰 */}
+        {currentClothing?.accessories?.[0]?.texture && currentClothing.accessories[0].texture.startsWith('data:image') && (
+          <ClothingPlane 
+            textureUrl={currentClothing.accessories[0].texture}
+            position={[-0.8, 1.8, 0.5]}
+            scale={[0.35, 0.35, 1]}
+            rotation={[0, 0.2, 0]}
+          />
+        )}
       </Suspense>
 
-      {/* 地面阴影 */}
-      <ContactShadows
-        position={[0, 0, 0]}
-        opacity={0.4}
-        scale={10}
-        blur={2}
-        far={4}
-      />
+      <ContactShadows position={[0, 0, 0]} opacity={0.4} scale={10} blur={2} far={4} />
 
-      {/* 地面 */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
         <circleGeometry args={[3, 64]} />
         <meshStandardMaterial color="#f0f0f0" transparent opacity={0.8} />
       </mesh>
 
-      {/* 控制器 */}
       <OrbitControls
         enablePan={false}
         enableZoom={true}
@@ -199,7 +261,7 @@ const Canvas3D: React.FC<Canvas3DProps> = ({ className = '', currentClothing }) 
           onError={() => setHasError(true)}
         >
           <color attach="background" args={['#f8fafc']} />
-          <SceneContent modelUrl="/avatar.glb" />
+          <SceneContent modelUrl="/avatar.glb" currentClothing={currentClothing} />
         </Canvas>
       </div>
 
