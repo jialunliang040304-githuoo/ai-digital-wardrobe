@@ -63,44 +63,56 @@ function ClothingPlane({
   );
 }
 
-// Avatar模型组件
+// Avatar模型组件 - 简化版本，更可靠
 function AvatarModel({ url }: { url: string }) {
   const group = useRef<THREE.Group>(null);
-  const { scene } = useGLTF(url);
   
-  useFrame((state) => {
-    if (group.current) {
-      group.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.3) * 0.1;
-    }
-  });
-
-  useEffect(() => {
-    scene.traverse((child) => {
-      if (child instanceof THREE.Mesh) {
-        child.castShadow = true;
-        child.receiveShadow = true;
-        if (child.material) {
-          child.material.needsUpdate = true;
-        }
+  try {
+    const { scene } = useGLTF(url);
+    
+    useFrame((state) => {
+      if (group.current) {
+        group.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.3) * 0.1;
       }
     });
-  }, [scene]);
 
-  const box = new THREE.Box3().setFromObject(scene);
-  const size = box.getSize(new THREE.Vector3());
-  const center = box.getCenter(new THREE.Vector3());
-  const maxDim = Math.max(size.x, size.y, size.z);
-  const scale = 2.5 / maxDim;
+    useEffect(() => {
+      if (scene) {
+        scene.traverse((child) => {
+          if (child instanceof THREE.Mesh) {
+            child.castShadow = true;
+            child.receiveShadow = true;
+            if (child.material) {
+              child.material.needsUpdate = true;
+            }
+          }
+        });
+      }
+    }, [scene]);
 
-  return (
-    <group ref={group}>
-      <primitive 
-        object={scene} 
-        scale={scale}
-        position={[-center.x * scale, -center.y * scale + 0.1, -center.z * scale]}
-      />
-    </group>
-  );
+    // 简化缩放逻辑
+    const scale = 1.5; // 固定缩放，避免计算错误
+
+    return (
+      <group ref={group}>
+        <primitive 
+          object={scene} 
+          scale={scale}
+          position={[0, -1, 0]}
+        />
+      </group>
+    );
+  } catch (error) {
+    console.error('Avatar模型加载错误:', error);
+    return (
+      <Html center>
+        <div className="text-center text-red-600">
+          <p>模型加载失败</p>
+          <p className="text-xs">{error instanceof Error ? error.message : '未知错误'}</p>
+        </div>
+      </Html>
+    );
+  }
 }
 
 // 场景内容
@@ -205,33 +217,47 @@ const Canvas3D: React.FC<Canvas3DProps> = ({ className = '', currentClothing }) 
       if (!gl) {
         setWebglSupported(false);
         setErrorMessage('您的浏览器不支持WebGL，无法显示3D内容');
+        return;
       }
+      console.log('✅ WebGL支持检测通过');
     } catch (e) {
       console.error('WebGL检测失败:', e);
       setWebglSupported(false);
       setErrorMessage('WebGL初始化失败');
+      return;
     }
   }, []);
 
-  // 预加载模型
+  // 预加载模型 - 简化版本
   useEffect(() => {
     if (!webglSupported) return;
     
     const loadModel = async () => {
       try {
+        console.log('🔄 开始加载avatar.glb模型...');
         setIsLoading(true);
         setHasError(false);
         
         // 检查模型文件是否存在
-        const response = await fetch('/avatar.glb');
+        const response = await fetch('/avatar.glb', { method: 'HEAD' });
         if (!response.ok) {
-          throw new Error(`模型文件加载失败: ${response.status}`);
+          throw new Error(`模型文件不存在: HTTP ${response.status}`);
         }
         
+        const fileSize = response.headers.get('content-length');
+        console.log(`✅ avatar.glb文件存在，大小: ${fileSize} bytes`);
+        
+        // 预加载模型
         useGLTF.preload('/avatar.glb');
-        setIsLoading(false);
+        console.log('✅ 模型预加载完成');
+        
+        // 延迟一点时间确保加载完成
+        setTimeout(() => {
+          setIsLoading(false);
+        }, 1000);
+        
       } catch (error) {
-        console.error('模型加载失败:', error);
+        console.error('❌ 模型加载失败:', error);
         setHasError(true);
         setIsLoading(false);
         setErrorMessage(error instanceof Error ? error.message : '模型加载失败');
@@ -243,9 +269,9 @@ const Canvas3D: React.FC<Canvas3DProps> = ({ className = '', currentClothing }) 
 
   // 错误处理函数
   const handleCanvasError = (error: any) => {
-    console.error('Canvas渲染错误:', error);
+    console.error('❌ Canvas渲染错误:', error);
     setHasError(true);
-    setErrorMessage('3D渲染出现错误');
+    setErrorMessage('3D渲染出现错误: ' + (error?.message || '未知错误'));
   };
 
   // WebGL不支持的回退UI
@@ -273,16 +299,25 @@ const Canvas3D: React.FC<Canvas3DProps> = ({ className = '', currentClothing }) 
             <div className="text-4xl mb-4">❌</div>
             <h3 className="text-lg font-semibold text-red-700 mb-2">3D模型加载失败</h3>
             <p className="text-red-600 text-sm mb-4">{errorMessage}</p>
-            <button
-              onClick={() => {
-                setHasError(false);
-                setIsLoading(true);
-                window.location.reload();
-              }}
-              className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-            >
-              重新加载
-            </button>
+            <div className="space-y-2">
+              <button
+                onClick={() => {
+                  console.log('🔄 用户点击重新加载');
+                  setHasError(false);
+                  setIsLoading(true);
+                  window.location.reload();
+                }}
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors mr-2"
+              >
+                重新加载
+              </button>
+              <button
+                onClick={() => window.open('/test-avatar.html', '_blank')}
+                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+              >
+                测试模型
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -305,8 +340,9 @@ const Canvas3D: React.FC<Canvas3DProps> = ({ className = '', currentClothing }) 
               gl.shadowMap.enabled = true;
               gl.shadowMap.type = THREE.PCFSoftShadowMap;
               gl.outputColorSpace = THREE.SRGBColorSpace;
+              console.log('✅ Canvas初始化成功');
             } catch (error) {
-              console.error('Canvas初始化错误:', error);
+              console.error('❌ Canvas初始化错误:', error);
               handleCanvasError(error);
             }
           }}
@@ -323,23 +359,7 @@ const Canvas3D: React.FC<Canvas3DProps> = ({ className = '', currentClothing }) 
           <div className="text-center">
             <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
             <p className="text-gray-600 font-medium">加载3D模型中...</p>
-          </div>
-        </div>
-      )}
-
-      {/* 错误状态 */}
-      {hasError && !isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-red-50/90 backdrop-blur-sm rounded-2xl">
-          <div className="text-center p-6">
-            <div className="text-4xl mb-4">❌</div>
-            <h3 className="text-lg font-semibold text-red-700 mb-2">模型加载失败</h3>
-            <p className="text-red-600 text-sm mb-4">请检查avatar.glb文件是否存在</p>
-            <button
-              onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
-            >
-              重新加载
-            </button>
+            <p className="text-gray-500 text-sm mt-2">正在加载avatar.glb文件</p>
           </div>
         </div>
       )}
@@ -347,7 +367,10 @@ const Canvas3D: React.FC<Canvas3DProps> = ({ className = '', currentClothing }) 
       {/* 控制按钮 */}
       <div className="absolute top-4 right-4 flex flex-col space-y-2">
         <button
-          onClick={() => window.location.reload()}
+          onClick={() => {
+            console.log('🔄 重置视图');
+            window.location.reload();
+          }}
           className="p-3 bg-white/90 hover:bg-white rounded-xl shadow-lg transition-all min-h-[44px] min-w-[44px]"
           aria-label="重置视图"
         >
@@ -358,13 +381,13 @@ const Canvas3D: React.FC<Canvas3DProps> = ({ className = '', currentClothing }) 
       {/* 状态指示器 */}
       <div className="absolute bottom-4 left-4 text-xs text-gray-600 bg-white/90 px-3 py-2 rounded-lg shadow-sm">
         <div className="flex items-center gap-2">
-          <div className={`w-2 h-2 rounded-full ${hasError ? 'bg-red-500' : 'bg-green-500'} animate-pulse`}></div>
-          {hasError ? '模型加载失败' : '3D试穿工作室'}
+          <div className={`w-2 h-2 rounded-full ${hasError ? 'bg-red-500' : isLoading ? 'bg-yellow-500 animate-pulse' : 'bg-green-500'}`}></div>
+          {hasError ? '模型加载失败' : isLoading ? '加载中...' : '3D试穿工作室'}
         </div>
       </div>
 
       {/* 当前穿着指示器 */}
-      {currentClothing && (
+      {currentClothing && !isLoading && (
         <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm rounded-lg p-3 shadow-lg">
           <div className="text-xs text-gray-600 mb-1">当前穿着</div>
           <div className="flex gap-1">
@@ -377,9 +400,11 @@ const Canvas3D: React.FC<Canvas3DProps> = ({ className = '', currentClothing }) 
       )}
 
       {/* 操作提示 */}
-      <div className="absolute bottom-4 right-4 text-xs text-gray-500 bg-white/80 px-2 py-1 rounded">
-        拖动旋转 • 滚轮缩放
-      </div>
+      {!isLoading && !hasError && (
+        <div className="absolute bottom-4 right-4 text-xs text-gray-500 bg-white/80 px-2 py-1 rounded">
+          拖动旋转 • 滚轮缩放
+        </div>
+      )}
     </div>
   );
 };

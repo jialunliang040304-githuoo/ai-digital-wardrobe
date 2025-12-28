@@ -1,8 +1,9 @@
 import React, { useState, useEffect, Suspense, lazy } from 'react';
-import { Save, Share, Undo2, User, Shirt, Zap, Video, Sparkles, Upload, Lightbulb, Calendar } from 'lucide-react';
+import { Save, Share, Undo2, User, Shirt, Zap, Video, Sparkles, Upload, Lightbulb, AlertTriangle } from 'lucide-react';
 import { ClothingItem, ClothingCategory, WornClothing } from '../../types';
 import { useAppContext, actions } from '../../context/AppContext';
 import Canvas3D from '../TryOnStudio/Canvas3D';
+import EmergencyCanvas3D from '../TryOnStudio/EmergencyCanvas3D';
 import ClothingCarousel from '../TryOnStudio/ClothingCarousel';
 import SaveLookModal from '../TryOnStudio/SaveLookModal';
 import { BodyScanModal } from '../AI/BodyScanModal';
@@ -68,7 +69,7 @@ const TryOnStudio: React.FC<TryOnStudioProps> = ({ isActive }) => {
   const [aiGeneratedModels, setAiGeneratedModels] = useState<AIModelResult[]>([]);
   const [currentGaussianModel, setCurrentGaussianModel] = useState<string | null>(null);
   const [processingTask, setProcessingTask] = useState<GaussianSplattingTask | null>(null);
-  const [viewMode, setViewMode] = useState<'simple' | 'gaussian'>('simple');
+  const [viewMode, setViewMode] = useState<'simple' | 'gaussian' | 'emergency'>('simple');
   const [showClothingUploader, setShowClothingUploader] = useState(false);
   const [showSmartRecommendation, setShowSmartRecommendation] = useState(false);
   const [showColorMatcher, setShowColorMatcher] = useState(false);
@@ -395,6 +396,17 @@ const TryOnStudio: React.FC<TryOnStudioProps> = ({ isActive }) => {
           >
             高斯泼溅
           </button>
+          <button
+            onClick={() => setViewMode('emergency')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-1 ${
+              viewMode === 'emergency' 
+                ? 'bg-red-500 text-white' 
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            <AlertTriangle size={14} />
+            紧急模式
+          </button>
         </div>
 
         {/* 3D Canvas 区域 */}
@@ -404,12 +416,12 @@ const TryOnStudio: React.FC<TryOnStudioProps> = ({ isActive }) => {
               <div className="text-center p-6">
                 <div className="text-4xl mb-4">🔧</div>
                 <h3 className="text-lg font-semibold text-red-700 mb-2">3D渲染暂时不可用</h3>
-                <p className="text-red-600 text-sm mb-4">请刷新页面重试</p>
+                <p className="text-red-600 text-sm mb-4">自动切换到紧急模式</p>
                 <button
-                  onClick={() => window.location.reload()}
-                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                  onClick={() => setViewMode('emergency')}
+                  className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
                 >
-                  刷新页面
+                  启用紧急模式
                 </button>
               </div>
             </div>
@@ -417,6 +429,8 @@ const TryOnStudio: React.FC<TryOnStudioProps> = ({ isActive }) => {
         >
           {viewMode === 'simple' ? (
             <Canvas3D className="aspect-[3/4]" currentClothing={state.currentLook} />
+          ) : viewMode === 'emergency' ? (
+            <EmergencyCanvas3D className="aspect-[3/4]" currentClothing={state.currentLook} />
           ) : (
             <GaussianErrorBoundary fallback={<GaussianFallback />}>
               <Suspense fallback={<GaussianLoading />}>
