@@ -319,7 +319,7 @@ const Canvas3D: React.FC<Canvas3DProps> = ({ className = '', currentClothing }) 
             {currentClothing.top && <div className="w-3 h-3 bg-blue-500 rounded" title="上装"></div>}
             {currentClothing.bottom && <div className="w-3 h-3 bg-gray-700 rounded" title="下装"></div>}
             {currentClothing.shoes && <div className="w-3 h-3 bg-white border border-gray-300 rounded" title="鞋子"></div>}
-            {currentClothing.accessories?.length > 0 && <div className="w-3 h-3 bg-purple-500 rounded" title="配饰"></div>}
+            {(currentClothing.accessories?.length ?? 0) > 0 && <div className="w-3 h-3 bg-purple-500 rounded" title="配饰"></div>}
           </div>
         </div>
       )}

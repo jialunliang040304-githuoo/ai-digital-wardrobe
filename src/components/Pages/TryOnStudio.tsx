@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Suspense, lazy } from 'react';
-import { Save, Share, Undo2, User, Shirt, Zap, Video, Sparkles } from 'lucide-react';
+import { Save, Share, Undo2, User, Shirt, Zap, Video, Sparkles, Upload } from 'lucide-react';
 import { ClothingItem, ClothingCategory, WornClothing } from '../../types';
 import { useAppContext, actions } from '../../context/AppContext';
 import Canvas3D from '../TryOnStudio/Canvas3D';
@@ -8,6 +8,7 @@ import SaveLookModal from '../TryOnStudio/SaveLookModal';
 import { BodyScanModal } from '../AI/BodyScanModal';
 import { ClothingCaptureModal } from '../AI/ClothingCaptureModal';
 import VideoCapture3D from '../AI/VideoCapture3D';
+import ClothingUploader from '../AI/ClothingUploader';
 import { aiService, AIModelResult, GaussianSplattingTask } from '../../services/aiService';
 
 // 懒加载高斯泼溅组件
@@ -65,6 +66,7 @@ const TryOnStudio: React.FC<TryOnStudioProps> = ({ isActive }) => {
   const [currentGaussianModel, setCurrentGaussianModel] = useState<string | null>(null);
   const [processingTask, setProcessingTask] = useState<GaussianSplattingTask | null>(null);
   const [viewMode, setViewMode] = useState<'simple' | 'gaussian'>('simple');
+  const [showClothingUploader, setShowClothingUploader] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('auth_token');
@@ -168,6 +170,24 @@ const TryOnStudio: React.FC<TryOnStudioProps> = ({ isActive }) => {
     setShowVideoCapture(true);
   };
 
+  // 处理服装上传
+  const handleClothingUpload = (imageData: string, category: ClothingCategory, name: string) => {
+    const newItem: ClothingItem = {
+      id: `uploaded-${Date.now()}`,
+      name,
+      category,
+      type: 'custom',
+      meshData: '',
+      texture: imageData,
+      mountPoints: [],
+      tags: ['自定义', '上传'],
+      createdAt: new Date()
+    };
+    dispatch(actions.addClothingItem(newItem));
+    // 自动选中刚上传的服装
+    setSelectedCategory(category);
+  };
+
   const handleSaveLook = () => {
     const hasClothing = state.currentLook.top || 
                        state.currentLook.bottom || 
@@ -268,6 +288,14 @@ const TryOnStudio: React.FC<TryOnStudioProps> = ({ isActive }) => {
           </div>
           
           <div className="flex space-x-2">
+            <button
+              onClick={() => setShowClothingUploader(true)}
+              className="p-2 text-green-600 hover:bg-green-50 rounded-full transition-colors min-h-[44px] min-w-[44px]"
+              aria-label="上传服装"
+              title="上传服装图片"
+            >
+              <Upload size={18} />
+            </button>
             <button
               onClick={() => startVideoCapture('body')}
               className="p-2 text-purple-600 hover:bg-purple-50 rounded-full transition-colors min-h-[44px] min-w-[44px]"
@@ -431,6 +459,12 @@ const TryOnStudio: React.FC<TryOnStudioProps> = ({ isActive }) => {
         onClose={() => setShowVideoCapture(false)}
         onVideoCapture={handleVideoCapture}
         captureType={videoCaptureType}
+      />
+
+      <ClothingUploader
+        isOpen={showClothingUploader}
+        onClose={() => setShowClothingUploader(false)}
+        onUpload={handleClothingUpload}
       />
     </div>
   );
