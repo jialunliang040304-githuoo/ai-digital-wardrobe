@@ -37,13 +37,13 @@ function SimpleLoader() {
 function SimpleAvatar() {
   const group = useRef<THREE.Group>(null);
   const [error, setError] = useState<string | null>(null);
-  const [modelUrl, setModelUrl] = useState('https://threejs.org/examples/models/gltf/RobotExpressive/RobotExpressive.glb'); // 直接使用CDN
+  const [modelUrl, setModelUrl] = useState('https://raw.githubusercontent.com/jialunliang040304-githuoo/ai-digital-wardrobe/main/public/avatar.glb'); // 直接使用GitHub Raw
   
-  // CDN优先URL列表
+  // GitHub Raw优先URL列表
   const fallbackUrls = [
+    'https://raw.githubusercontent.com/jialunliang040304-githuoo/ai-digital-wardrobe/main/public/avatar.glb', // 原始模型
     'https://threejs.org/examples/models/gltf/RobotExpressive/RobotExpressive.glb', // 机器人
-    'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Duck/glTF-Binary/Duck.glb', // 小鸭子
-    '/avatar.glb' // 本地文件最后
+    'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Duck/glTF-Binary/Duck.glb' // 小鸭子
   ];
   
   const [currentUrlIndex, setCurrentUrlIndex] = useState(0);
@@ -59,7 +59,7 @@ function SimpleAvatar() {
 
     useEffect(() => {
       if (scene) {
-        console.log('✅ 紧急模式CDN模型加载成功:', modelUrl);
+        console.log('✅ 紧急模式GitHub Raw模型加载成功:', modelUrl);
         scene.traverse((child) => {
           if (child instanceof THREE.Mesh) {
             child.castShadow = true;
@@ -69,7 +69,8 @@ function SimpleAvatar() {
       }
     }, [scene]);
 
-    const scale = modelUrl.includes('RobotExpressive') ? 0.6 : 
+    const scale = modelUrl.includes('avatar.glb') ? 1.2 :
+                  modelUrl.includes('RobotExpressive') ? 0.6 : 
                   modelUrl.includes('Duck') ? 1.8 : 1.2;
 
     return (

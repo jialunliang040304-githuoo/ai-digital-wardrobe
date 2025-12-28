@@ -22,6 +22,15 @@ backend/prisma/dev.db-journal
 *.db
 *.db-journal
 
+# Large 3D model files - use CDN instead
+*.glb
+*.gltf
+*.fbx
+*.obj
+*.dae
+*.3ds
+*.blend
+
 # Logs
 npm-debug.log*
 yarn-debug.log*

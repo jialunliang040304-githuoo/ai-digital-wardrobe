@@ -63,28 +63,25 @@ function ClothingPlane({
   );
 }
 
-// Avatar模型组件 - 优先使用CDN，避免大文件问题
+// Avatar模型组件 - 直接使用GitHub Raw链接
 function AvatarModel({ url }: { url: string }) {
   const group = useRef<THREE.Group>(null);
-  const [modelUrl, setModelUrl] = useState(url);
   const [error, setError] = useState<string | null>(null);
   
-  // CDN优先URL列表 - 把CDN放在前面
+  // 直接使用GitHub Raw链接，不再依赖本地文件
+  const GITHUB_RAW_URL = 'https://raw.githubusercontent.com/jialunliang040304-githuoo/ai-digital-wardrobe/main/public/avatar.glb';
+  
+  // 备用模型链接
   const fallbackUrls = [
-    'https://threejs.org/examples/models/gltf/RobotExpressive/RobotExpressive.glb', // CDN优先
-    'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Duck/glTF-Binary/Duck.glb', // 小鸭子
-    url // 本地文件最后尝试
+    GITHUB_RAW_URL, // GitHub Raw主要链接
+    'https://threejs.org/examples/models/gltf/RobotExpressive/RobotExpressive.glb', // CDN备用
+    'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Duck/glTF-Binary/Duck.glb' // 小鸭子
   ];
   
   const [currentUrlIndex, setCurrentUrlIndex] = useState(0);
+  const modelUrl = fallbackUrls[currentUrlIndex];
   
-  // 初始化时使用CDN
-  useEffect(() => {
-    if (modelUrl === url) {
-      setModelUrl(fallbackUrls[0]); // 直接使用CDN
-      console.log('🌐 优先使用CDN模型:', fallbackUrls[0]);
-    }
-  }, []);
+  console.log(`🔗 使用模型链接 ${currentUrlIndex + 1}/${fallbackUrls.length}:`, modelUrl);
   
   try {
     const { scene } = useGLTF(modelUrl);
@@ -110,8 +107,9 @@ function AvatarModel({ url }: { url: string }) {
       }
     }, [scene]);
 
-    // 简化缩放逻辑
-    const scale = modelUrl.includes('RobotExpressive') ? 0.8 : 
+    // 智能缩放 - 原始avatar.glb使用1.5，其他模型调整
+    const scale = modelUrl.includes('avatar.glb') ? 1.5 : 
+                  modelUrl.includes('RobotExpressive') ? 0.8 : 
                   modelUrl.includes('Duck') ? 2.0 : 1.2;
 
     return (
@@ -134,7 +132,6 @@ function AvatarModel({ url }: { url: string }) {
       
       setTimeout(() => {
         setCurrentUrlIndex(nextIndex);
-        setModelUrl(nextUrl);
       }, 1000);
       
       return (
@@ -276,28 +273,30 @@ const Canvas3D: React.FC<Canvas3DProps> = ({ className = '', currentClothing }) 
     }
   }, []);
 
-  // 预加载模型 - 简化版本
+  // 预加载模型 - 使用GitHub Raw链接
   useEffect(() => {
     if (!webglSupported) return;
     
     const loadModel = async () => {
       try {
-        console.log('🔄 开始加载avatar.glb模型...');
+        console.log('🔄 开始加载GitHub Raw avatar.glb模型...');
         setIsLoading(true);
         setHasError(false);
         
-        // 检查模型文件是否存在
-        const response = await fetch('/avatar.glb', { method: 'HEAD' });
+        const GITHUB_RAW_URL = 'https://raw.githubusercontent.com/jialunliang040304-githuoo/ai-digital-wardrobe/main/public/avatar.glb';
+        
+        // 检查GitHub Raw模型文件是否存在
+        const response = await fetch(GITHUB_RAW_URL, { method: 'HEAD' });
         if (!response.ok) {
-          throw new Error(`模型文件不存在: HTTP ${response.status}`);
+          throw new Error(`GitHub Raw模型文件不存在: HTTP ${response.status}`);
         }
         
         const fileSize = response.headers.get('content-length');
-        console.log(`✅ avatar.glb文件存在，大小: ${fileSize} bytes`);
+        console.log(`✅ GitHub Raw avatar.glb文件存在，大小: ${fileSize} bytes`);
         
-        // 预加载CDN模型而不是本地大文件
-        useGLTF.preload('https://threejs.org/examples/models/gltf/RobotExpressive/RobotExpressive.glb');
-        console.log('✅ CDN模型预加载完成');
+        // 预加载GitHub Raw模型
+        useGLTF.preload(GITHUB_RAW_URL);
+        console.log('✅ GitHub Raw模型预加载完成');
         
         // 延迟一点时间确保加载完成
         setTimeout(() => {
@@ -305,10 +304,21 @@ const Canvas3D: React.FC<Canvas3DProps> = ({ className = '', currentClothing }) 
         }, 1000);
         
       } catch (error) {
-        console.error('❌ 模型加载失败:', error);
-        setHasError(true);
-        setIsLoading(false);
-        setErrorMessage(error instanceof Error ? error.message : '模型加载失败');
+        console.error('❌ GitHub Raw模型加载失败:', error);
+        console.log('🔄 尝试备用模型...');
+        
+        // 尝试备用模型
+        try {
+          const fallbackUrl = 'https://threejs.org/examples/models/gltf/RobotExpressive/RobotExpressive.glb';
+          useGLTF.preload(fallbackUrl);
+          console.log('✅ 备用模型预加载完成');
+          setIsLoading(false);
+        } catch (fallbackError) {
+          console.error('❌ 备用模型也加载失败:', fallbackError);
+          setHasError(true);
+          setIsLoading(false);
+          setErrorMessage('所有模型加载失败，请检查网络连接');
+        }
       }
     };
     
@@ -397,7 +407,7 @@ const Canvas3D: React.FC<Canvas3DProps> = ({ className = '', currentClothing }) 
           onError={handleCanvasError}
         >
           <color attach="background" args={['#f8fafc']} />
-          <SceneContent modelUrl="/avatar.glb" currentClothing={currentClothing} />
+          <SceneContent modelUrl="https://raw.githubusercontent.com/jialunliang040304-githuoo/ai-digital-wardrobe/main/public/avatar.glb" currentClothing={currentClothing} />
         </Canvas>
       </div>
 
@@ -457,7 +467,8 @@ const Canvas3D: React.FC<Canvas3DProps> = ({ className = '', currentClothing }) 
   );
 };
 
-// 预加载CDN模型
-useGLTF.preload('https://threejs.org/examples/models/gltf/RobotExpressive/RobotExpressive.glb');
+// 预加载GitHub Raw模型
+const GITHUB_RAW_URL = 'https://raw.githubusercontent.com/jialunliang040304-githuoo/ai-digital-wardrobe/main/public/avatar.glb';
+useGLTF.preload(GITHUB_RAW_URL);
 
 export default Canvas3D;
