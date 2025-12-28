@@ -78,7 +78,7 @@ jspm_packages/
 
 # Gatsby files
 .cache/
-public
+# public - 注释掉，我们需要public目录下的静态文件
 
 # Storybook build outputs
 .out

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Avatar GLB 测试</title>
+    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: #f0f0f0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        model-viewer {
+            width: 100%;
+            height: 500px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+        .info {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e3f2fd;
+            border-radius: 8px;
+        }
+        .error {
+            background: #ffebee;
+            color: #c62828;
+        }
+        .success {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎭 Avatar GLB 模型测试</h1>
+        <p>测试 avatar.glb 文件是否能正常加载和显示</p>
+        
+        <model-viewer
+            src="/avatar.glb"
+            alt="3D Avatar Model"
+            auto-rotate
+            camera-controls
+            shadow-intensity="1"
+            environment-image="neutral"
+            exposure="1"
+            shadow-softness="0.75"
+            loading="eager"
+        >
+            <div slot="progress-bar" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #666;">
+                <div style="text-align: center;">
+                    <div style="width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; animation: spin 2s linear infinite; margin: 0 auto 10px;"></div>
+                    <p>加载3D模型中...</p>
+                </div>
+            </div>
+        </model-viewer>
+        
+        <div id="status" class="info">
+            <h3>📊 加载状态</h3>
+            <p id="statusText">正在检测模型文件...</p>
+            <div id="details"></div>
+        </div>
+        
+        <div class="info">
+            <h3>🔧 调试信息</h3>
+            <p><strong>文件路径:</strong> /avatar.glb</p>
+            <p><strong>浏览器:</strong> <span id="browser"></span></p>
+            <p><strong>WebGL支持:</strong> <span id="webgl"></span></p>
+            <p><strong>时间:</strong> <span id="timestamp"></span></p>
+        </div>
+    </div>
+
+    <style>
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+
+    <script>
+        const modelViewer = document.querySelector('model-viewer');
+        const statusDiv = document.getElementById('status');
+        const statusText = document.getElementById('statusText');
+        const detailsDiv = document.getElementById('details');
+        
+        // 填充调试信息
+        document.getElementById('browser').textContent = navigator.userAgent;
+        document.getElementById('timestamp').textContent = new Date().toLocaleString('zh-CN');
+        
+        // 检测WebGL支持
+        function checkWebGL() {
+            try {
+                const canvas = document.createElement('canvas');
+                const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
+                return gl ? '✅ 支持' : '❌ 不支持';
+            } catch (e) {
+                return '❌ 检测失败';
+            }
+        }
+        document.getElementById('webgl').textContent = checkWebGL();
+        
+        // 监听模型加载事件
+        modelViewer.addEventListener('load', () => {
+            statusDiv.className = 'info success';
+            statusText.textContent = '✅ 模型加载成功！';
+            detailsDiv.innerHTML = `
+                <p><strong>模型尺寸:</strong> ${modelViewer.getBoundingBoxCenter ? '已获取' : '未知'}</p>
+                <p><strong>加载时间:</strong> ${new Date().toLocaleTimeString('zh-CN')}</p>
+            `;
+        });
+        
+        modelViewer.addEventListener('error', (event) => {
+            statusDiv.className = 'info error';
+            statusText.textContent = '❌ 模型加载失败！';
+            detailsDiv.innerHTML = `
+                <p><strong>错误信息:</strong> ${event.detail?.message || '未知错误'}</p>
+                <p><strong>错误类型:</strong> ${event.detail?.type || '未知'}</p>
+            `;
+        });
+        
+        modelViewer.addEventListener('progress', (event) => {
+            const progress = event.detail.totalProgress;
+            statusText.textContent = `⏳ 加载中... ${Math.round(progress * 100)}%`;
+        });
+        
+        // 检查文件是否存在
+        fetch('/avatar.glb', { method: 'HEAD' })
+            .then(response => {
+                if (response.ok) {
+                    console.log('✅ avatar.glb 文件存在');
+                    console.log('文件大小:', response.headers.get('content-length'), 'bytes');
+                } else {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+            })
+            .catch(error => {
+                statusDiv.className = 'info error';
+                statusText.textContent = '❌ 文件检查失败！';
+                detailsDiv.innerHTML = `<p><strong>错误:</strong> ${error.message}</p>`;
+            });
+    </script>
+</body>
+</html>
