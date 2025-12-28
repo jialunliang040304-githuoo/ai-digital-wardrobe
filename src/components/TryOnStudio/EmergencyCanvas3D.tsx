@@ -5,6 +5,7 @@
 import React, { Suspense, useRef, useEffect, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, useGLTF, Html } from '@react-three/drei';
+import FallbackAvatar from './FallbackAvatar';
 import * as THREE from 'three';
 
 interface EmergencyCanvas3DProps {
@@ -32,13 +33,23 @@ function SimpleLoader() {
   );
 }
 
-// 最简单的Avatar组件
+// 最简单的Avatar组件 - 支持CDN备用
 function SimpleAvatar() {
   const group = useRef<THREE.Group>(null);
   const [error, setError] = useState<string | null>(null);
+  const [modelUrl, setModelUrl] = useState('/avatar.glb');
+  
+  // CDN备用URL列表
+  const fallbackUrls = [
+    '/avatar.glb', // 原始URL
+    'https://threejs.org/examples/models/gltf/RobotExpressive/RobotExpressive.glb', // 机器人
+    'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Duck/glTF-Binary/Duck.glb' // 小鸭子
+  ];
+  
+  const [currentUrlIndex, setCurrentUrlIndex] = useState(0);
   
   try {
-    const { scene } = useGLTF('/avatar.glb');
+    const { scene } = useGLTF(modelUrl);
     
     useFrame((state) => {
       if (group.current) {
@@ -48,7 +59,7 @@ function SimpleAvatar() {
 
     useEffect(() => {
       if (scene) {
-        console.log('✅ 模型场景加载成功');
+        console.log('✅ 紧急模式模型加载成功:', modelUrl);
         scene.traverse((child) => {
           if (child instanceof THREE.Mesh) {
             child.castShadow = true;
@@ -68,13 +79,35 @@ function SimpleAvatar() {
       </group>
     );
   } catch (err) {
-    console.error('❌ Avatar加载错误:', err);
-    setError(err instanceof Error ? err.message : '模型加载失败');
+    console.error('❌ 紧急模式Avatar加载错误:', err);
+    
+    // 尝试下一个备用URL
+    if (currentUrlIndex < fallbackUrls.length - 1) {
+      const nextIndex = currentUrlIndex + 1;
+      const nextUrl = fallbackUrls[nextIndex];
+      console.log(`🔄 紧急模式尝试备用URL ${nextIndex + 1}:`, nextUrl);
+      
+      setTimeout(() => {
+        setCurrentUrlIndex(nextIndex);
+        setModelUrl(nextUrl);
+      }, 1000);
+      
+      return (
+        <Html center>
+          <div style={{ textAlign: 'center', color: '#f39c12' }}>
+            <p>🚨 紧急备用中...</p>
+            <p style={{ fontSize: '12px' }}>方案 {nextIndex + 1}/{fallbackUrls.length}</p>
+          </div>
+        </Html>
+      );
+    }
+    
+    setError(err instanceof Error ? err.message : '所有备用方案失败');
     
     return (
       <Html center>
         <div style={{ textAlign: 'center', color: '#e74c3c' }}>
-          <p>❌ 模型加载失败</p>
+          <p>💥 紧急模式失败</p>
           <p style={{ fontSize: '12px' }}>{error}</p>
         </div>
       </Html>
@@ -82,8 +115,10 @@ function SimpleAvatar() {
   }
 }
 
-// 简单场景
+// 简单场景 - 支持完全备用方案
 function SimpleScene() {
+  const [useFallback, setUseFallback] = useState(false);
+  
   return (
     <>
       {/* 基础光照 */}
@@ -93,7 +128,11 @@ function SimpleScene() {
       
       {/* 模型 */}
       <Suspense fallback={<SimpleLoader />}>
-        <SimpleAvatar />
+        {useFallback ? (
+          <FallbackAvatar />
+        ) : (
+          <SimpleAvatar />
+        )}
       </Suspense>
       
       {/* 地面 */}
@@ -111,6 +150,24 @@ function SimpleScene() {
         maxDistance={8}
         target={[0, 0, 0]}
       />
+      
+      {/* 备用切换按钮 */}
+      <Html position={[2, 2, 0]}>
+        <button
+          onClick={() => setUseFallback(!useFallback)}
+          style={{
+            padding: '8px 12px',
+            backgroundColor: useFallback ? '#e74c3c' : '#3498db',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            fontSize: '12px',
+            cursor: 'pointer'
+          }}
+        >
+          {useFallback ? '🤖 几何体模型' : '📦 GLB模型'}
+        </button>
+      </Html>
     </>
   );
 }

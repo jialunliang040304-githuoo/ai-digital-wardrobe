@@ -63,21 +63,33 @@ function ClothingPlane({
   );
 }
 
-// Avatar模型组件 - 简化版本，更可靠
+// Avatar模型组件 - 简化版本，更可靠，支持CDN备用
 function AvatarModel({ url }: { url: string }) {
   const group = useRef<THREE.Group>(null);
+  const [modelUrl, setModelUrl] = useState(url);
+  const [error, setError] = useState<string | null>(null);
+  
+  // CDN备用URL列表
+  const fallbackUrls = [
+    url, // 原始URL
+    'https://threejs.org/examples/models/gltf/RobotExpressive/RobotExpressive.glb', // Three.js官方示例
+    'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Duck/glTF-Binary/Duck.glb' // 小鸭子模型
+  ];
+  
+  const [currentUrlIndex, setCurrentUrlIndex] = useState(0);
   
   try {
-    const { scene } = useGLTF(url);
+    const { scene } = useGLTF(modelUrl);
     
     useFrame((state) => {
       if (group.current) {
-        group.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.3) * 0.1;
+        group.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.2) * 0.1;
       }
     });
 
     useEffect(() => {
       if (scene) {
+        console.log('✅ 模型场景加载成功:', modelUrl);
         scene.traverse((child) => {
           if (child instanceof THREE.Mesh) {
             child.castShadow = true;
@@ -91,7 +103,7 @@ function AvatarModel({ url }: { url: string }) {
     }, [scene]);
 
     // 简化缩放逻辑
-    const scale = 1.5; // 固定缩放，避免计算错误
+    const scale = 1.2; // 固定缩放，避免计算错误
 
     return (
       <group ref={group}>
@@ -102,13 +114,40 @@ function AvatarModel({ url }: { url: string }) {
         />
       </group>
     );
-  } catch (error) {
-    console.error('Avatar模型加载错误:', error);
+  } catch (err) {
+    console.error('❌ Avatar加载错误:', err);
+    
+    // 尝试下一个备用URL
+    if (currentUrlIndex < fallbackUrls.length - 1) {
+      const nextIndex = currentUrlIndex + 1;
+      const nextUrl = fallbackUrls[nextIndex];
+      console.log(`🔄 尝试备用URL ${nextIndex + 1}:`, nextUrl);
+      
+      setTimeout(() => {
+        setCurrentUrlIndex(nextIndex);
+        setModelUrl(nextUrl);
+      }, 1000);
+      
+      return (
+        <Html center>
+          <div style={{ textAlign: 'center', color: '#f39c12' }}>
+            <p>⏳ 尝试备用模型...</p>
+            <p style={{ fontSize: '12px' }}>备用方案 {nextIndex + 1}/{fallbackUrls.length}</p>
+          </div>
+        </Html>
+      );
+    }
+    
+    setError(err instanceof Error ? err.message : '所有模型加载失败');
+    
     return (
       <Html center>
-        <div className="text-center text-red-600">
-          <p>模型加载失败</p>
-          <p className="text-xs">{error instanceof Error ? error.message : '未知错误'}</p>
+        <div style={{ textAlign: 'center', color: '#e74c3c' }}>
+          <p>❌ 模型加载失败</p>
+          <p style={{ fontSize: '12px' }}>{error}</p>
+          <p style={{ fontSize: '10px', marginTop: '8px' }}>
+            已尝试 {fallbackUrls.length} 个备用方案
+          </p>
         </div>
       </Html>
     );
