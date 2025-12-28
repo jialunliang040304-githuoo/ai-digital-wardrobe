@@ -246,4 +246,261 @@ router.get('/batch-status/:batchId', async (req, res) => {
   }
 });
 
+// ============ 高斯泼溅 & Luma AI 端点 ============
+
+// 存储任务状态
+const taskStore = new Map<string, any>();
+
+// 从视频生成人体高斯泼溅模型
+router.post('/generate-body-gaussian',
+  upload.single('video'),
+  async (req, res) => {
+    try {
+      const file = req.file;
+      if (!file) {
+        return res.status(400).json({ error: '请上传视频文件' });
+      }
+
+      const taskId = `gs_body_${Date.now()}`;
+      
+      // 创建任务
+      const task = {
+        id: taskId,
+        type: 'body',
+        method: 'gaussian_splatting',
+        status: 'processing',
+        progress: 0,
+        createdAt: new Date().toISOString()
+      };
+      
+      taskStore.set(taskId, task);
+
+      // 模拟处理进度
+      simulateGaussianProcessing(taskId, 'body');
+
+      res.json({
+        success: true,
+        task: {
+          id: taskId,
+          status: 'processing',
+          progress: 0,
+          estimatedTime: 300 // 预计5分钟
+        }
+      });
+    } catch (error) {
+      console.error('高斯泼溅生成失败:', error);
+      res.status(500).json({ 
+        error: '模型生成失败',
+        message: error instanceof Error ? error.message : '未知错误'
+      });
+    }
+  }
+);
+
+// 从视频生成服装高斯泼溅模型
+router.post('/generate-clothing-gaussian',
+  upload.single('video'),
+  async (req, res) => {
+    try {
+      const file = req.file;
+      if (!file) {
+        return res.status(400).json({ error: '请上传视频文件' });
+      }
+
+      const taskId = `gs_clothing_${Date.now()}`;
+      const category = req.body.category || 'tops';
+      
+      const task = {
+        id: taskId,
+        type: 'clothing',
+        category,
+        method: 'gaussian_splatting',
+        status: 'processing',
+        progress: 0,
+        createdAt: new Date().toISOString()
+      };
+      
+      taskStore.set(taskId, task);
+
+      // 模拟处理进度
+      simulateGaussianProcessing(taskId, 'clothing');
+
+      res.json({
+        success: true,
+        task: {
+          id: taskId,
+          status: 'processing',
+          progress: 0,
+          estimatedTime: 180 // 预计3分钟
+        }
+      });
+    } catch (error) {
+      console.error('高斯泼溅生成失败:', error);
+      res.status(500).json({ 
+        error: '模型生成失败',
+        message: error instanceof Error ? error.message : '未知错误'
+      });
+    }
+  }
+);
+
+// 使用Luma AI生成3D模型
+router.post('/generate-luma',
+  upload.array('images', 50),
+  async (req, res) => {
+    try {
+      const files = req.files as Express.Multer.File[];
+      if (!files || files.length === 0) {
+        return res.status(400).json({ error: '请上传图片' });
+      }
+
+      const taskId = `luma_${Date.now()}`;
+      const type = req.body.type || 'body';
+      
+      const task = {
+        id: taskId,
+        type,
+        method: 'luma',
+        status: 'processing',
+        progress: 0,
+        imageCount: files.length,
+        createdAt: new Date().toISOString()
+      };
+      
+      taskStore.set(taskId, task);
+
+      // 模拟Luma处理
+      simulateLumaProcessing(taskId, type);
+
+      res.json({
+        success: true,
+        task: {
+          id: taskId,
+          status: 'processing',
+          progress: 0,
+          estimatedTime: 600 // 预计10分钟
+        }
+      });
+    } catch (error) {
+      console.error('Luma AI生成失败:', error);
+      res.status(500).json({ 
+        error: '模型生成失败',
+        message: error instanceof Error ? error.message : '未知错误'
+      });
+    }
+  }
+);
+
+// 查询任务状态
+router.get('/tasks/:taskId', async (req, res) => {
+  try {
+    const { taskId } = req.params;
+    const task = taskStore.get(taskId);
+    
+    if (!task) {
+      return res.status(404).json({ error: '任务不存在' });
+    }
+    
+    res.json(task);
+  } catch (error) {
+    console.error('查询任务状态失败:', error);
+    res.status(500).json({ error: '查询失败' });
+  }
+});
+
+// 将高斯泼溅转换为Mesh
+router.post('/convert-splat-to-mesh', async (req, res) => {
+  try {
+    const { splatUrl } = req.body;
+    
+    if (!splatUrl) {
+      return res.status(400).json({ error: '请提供splat文件URL' });
+    }
+
+    // 模拟转换
+    const meshUrl = splatUrl.replace('.splat', '.glb').replace('.ply', '.glb');
+    
+    res.json({
+      success: true,
+      meshUrl
+    });
+  } catch (error) {
+    console.error('转换失败:', error);
+    res.status(500).json({ error: '转换失败' });
+  }
+});
+
+// 模拟高斯泼溅处理进度
+function simulateGaussianProcessing(taskId: string, type: string) {
+  let progress = 0;
+  const interval = setInterval(() => {
+    progress += Math.random() * 15;
+    if (progress >= 100) {
+      progress = 100;
+      clearInterval(interval);
+      
+      const task = taskStore.get(taskId);
+      if (task) {
+        task.status = 'completed';
+        task.progress = 100;
+        task.result = {
+          id: taskId,
+          type: 'gaussian_splatting',
+          vertexCount: 0,
+          faceCount: 0,
+          pointCount: Math.floor(Math.random() * 500000) + 100000,
+          downloadUrl: `/api/ai/models/${taskId}.glb`,
+          splatUrl: `/api/ai/models/${taskId}.splat`,
+          plyUrl: `/api/ai/models/${taskId}.ply`,
+          previewUrl: `https://via.placeholder.com/400x400?text=3D+${type}`,
+          status: 'completed'
+        };
+        taskStore.set(taskId, task);
+      }
+    } else {
+      const task = taskStore.get(taskId);
+      if (task) {
+        task.progress = Math.round(progress);
+        taskStore.set(taskId, task);
+      }
+    }
+  }, 3000); // 每3秒更新一次
+}
+
+// 模拟Luma处理进度
+function simulateLumaProcessing(taskId: string, type: string) {
+  let progress = 0;
+  const interval = setInterval(() => {
+    progress += Math.random() * 10;
+    if (progress >= 100) {
+      progress = 100;
+      clearInterval(interval);
+      
+      const task = taskStore.get(taskId);
+      if (task) {
+        task.status = 'completed';
+        task.progress = 100;
+        task.result = {
+          id: taskId,
+          type: 'gaussian_splatting',
+          vertexCount: Math.floor(Math.random() * 50000) + 10000,
+          faceCount: Math.floor(Math.random() * 25000) + 5000,
+          pointCount: Math.floor(Math.random() * 1000000) + 200000,
+          downloadUrl: `/api/ai/models/${taskId}.glb`,
+          splatUrl: `/api/ai/models/${taskId}.splat`,
+          previewUrl: `https://via.placeholder.com/400x400?text=Luma+${type}`,
+          status: 'completed'
+        };
+        taskStore.set(taskId, task);
+      }
+    } else {
+      const task = taskStore.get(taskId);
+      if (task) {
+        task.progress = Math.round(progress);
+        taskStore.set(taskId, task);
+      }
+    }
+  }, 5000); // 每5秒更新一次
+}
+
 export { router as aiRouter };
