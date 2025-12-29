@@ -22,8 +22,8 @@ backend/prisma/dev.db-journal
 *.db
 *.db-journal
 
-# Large 3D model files - use CDN instead
-*.glb
+# Large 3D model files - use CDN instead (but allow compressed models)
+# *.glb - 注释掉，现在允许压缩的glb文件
 *.gltf
 *.fbx
 *.obj

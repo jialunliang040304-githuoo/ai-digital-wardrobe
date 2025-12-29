@@ -7,6 +7,7 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, useGLTF, Html } from '@react-three/drei';
 import FallbackAvatar from './FallbackAvatar';
 import * as THREE from 'three';
+import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 
 interface EmergencyCanvas3DProps {
   className?: string;
@@ -33,15 +34,15 @@ function SimpleLoader() {
   );
 }
 
-// 最简单的Avatar组件 - 优先CDN
+// 最简单的Avatar组件 - 使用本地压缩模型
 function SimpleAvatar() {
   const group = useRef<THREE.Group>(null);
   const [error, setError] = useState<string | null>(null);
-  const [modelUrl, setModelUrl] = useState('https://raw.githubusercontent.com/jialunliang040304-githuoo/ai-digital-wardrobe/main/public/avatar.glb'); // 直接使用GitHub Raw
+  const [modelUrl, setModelUrl] = useState('/avatar.glb'); // 直接使用本地压缩模型
   
-  // GitHub Raw优先URL列表
+  // 本地压缩模型优先URL列表
   const fallbackUrls = [
-    'https://raw.githubusercontent.com/jialunliang040304-githuoo/ai-digital-wardrobe/main/public/avatar.glb', // 原始模型
+    '/avatar.glb', // 本地压缩模型（12MB）
     'https://threejs.org/examples/models/gltf/RobotExpressive/RobotExpressive.glb', // 机器人
     'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Duck/glTF-Binary/Duck.glb' // 小鸭子
   ];
@@ -49,7 +50,12 @@ function SimpleAvatar() {
   const [currentUrlIndex, setCurrentUrlIndex] = useState(0);
   
   try {
-    const { scene } = useGLTF(modelUrl);
+    const { scene } = useGLTF(modelUrl, false, false, (loader) => {
+      // 配置Meshopt解码器支持压缩模型
+      if (loader.setMeshoptDecoder) {
+        loader.setMeshoptDecoder(MeshoptDecoder);
+      }
+    });
     
     useFrame((state) => {
       if (group.current) {
@@ -59,7 +65,7 @@ function SimpleAvatar() {
 
     useEffect(() => {
       if (scene) {
-        console.log('✅ 紧急模式GitHub Raw模型加载成功:', modelUrl);
+        console.log('✅ 紧急模式本地压缩模型加载成功:', modelUrl);
         scene.traverse((child) => {
           if (child instanceof THREE.Mesh) {
             child.castShadow = true;
@@ -231,7 +237,11 @@ const EmergencyCanvas3D: React.FC<EmergencyCanvas3DProps> = ({ className = '' })
   );
 };
 
-// 预加载CDN模型
-useGLTF.preload('https://threejs.org/examples/models/gltf/RobotExpressive/RobotExpressive.glb');
+// 预加载本地压缩模型
+useGLTF.preload('/avatar.glb', false, false, (loader) => {
+  if (loader.setMeshoptDecoder) {
+    loader.setMeshoptDecoder(MeshoptDecoder);
+  }
+});
 
 export default EmergencyCanvas3D;

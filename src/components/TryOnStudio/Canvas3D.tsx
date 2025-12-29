@@ -7,6 +7,7 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, useGLTF, Environment, ContactShadows, Html, useTexture } from '@react-three/drei';
 import { RotateCcw } from 'lucide-react';
 import * as THREE from 'three';
+import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 
 interface Canvas3DProps {
   className?: string;
@@ -63,17 +64,14 @@ function ClothingPlane({
   );
 }
 
-// Avatar模型组件 - 直接使用GitHub Raw链接
+// Avatar模型组件 - 使用本地压缩模型
 function AvatarModel({ url }: { url: string }) {
   const group = useRef<THREE.Group>(null);
   const [error, setError] = useState<string | null>(null);
   
-  // 直接使用GitHub Raw链接，不再依赖本地文件
-  const GITHUB_RAW_URL = 'https://raw.githubusercontent.com/jialunliang040304-githuoo/ai-digital-wardrobe/main/public/avatar.glb';
-  
-  // 备用模型链接
+  // 使用本地压缩模型，备用CDN模型
   const fallbackUrls = [
-    GITHUB_RAW_URL, // GitHub Raw主要链接
+    '/avatar.glb', // 本地压缩模型（12MB）
     'https://threejs.org/examples/models/gltf/RobotExpressive/RobotExpressive.glb', // CDN备用
     'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Duck/glTF-Binary/Duck.glb' // 小鸭子
   ];
@@ -84,7 +82,12 @@ function AvatarModel({ url }: { url: string }) {
   console.log(`🔗 使用模型链接 ${currentUrlIndex + 1}/${fallbackUrls.length}:`, modelUrl);
   
   try {
-    const { scene } = useGLTF(modelUrl);
+    const { scene } = useGLTF(modelUrl, false, false, (loader) => {
+      // 配置Meshopt解码器支持压缩模型
+      if (loader.setMeshoptDecoder) {
+        loader.setMeshoptDecoder(MeshoptDecoder);
+      }
+    });
     
     useFrame((state) => {
       if (group.current) {
@@ -273,30 +276,32 @@ const Canvas3D: React.FC<Canvas3DProps> = ({ className = '', currentClothing }) 
     }
   }, []);
 
-  // 预加载模型 - 使用GitHub Raw链接
+  // 预加载模型 - 使用本地压缩文件
   useEffect(() => {
     if (!webglSupported) return;
     
     const loadModel = async () => {
       try {
-        console.log('🔄 开始加载GitHub Raw avatar.glb模型...');
+        console.log('🔄 开始加载本地压缩avatar.glb模型...');
         setIsLoading(true);
         setHasError(false);
         
-        const GITHUB_RAW_URL = 'https://raw.githubusercontent.com/jialunliang040304-githuoo/ai-digital-wardrobe/main/public/avatar.glb';
-        
-        // 检查GitHub Raw模型文件是否存在
-        const response = await fetch(GITHUB_RAW_URL, { method: 'HEAD' });
+        // 检查本地压缩模型文件是否存在
+        const response = await fetch('/avatar.glb', { method: 'HEAD' });
         if (!response.ok) {
-          throw new Error(`GitHub Raw模型文件不存在: HTTP ${response.status}`);
+          throw new Error(`本地压缩模型文件不存在: HTTP ${response.status}`);
         }
         
         const fileSize = response.headers.get('content-length');
-        console.log(`✅ GitHub Raw avatar.glb文件存在，大小: ${fileSize} bytes`);
+        console.log(`✅ 本地压缩avatar.glb文件存在，大小: ${fileSize} bytes`);
         
-        // 预加载GitHub Raw模型
-        useGLTF.preload(GITHUB_RAW_URL);
-        console.log('✅ GitHub Raw模型预加载完成');
+        // 预加载本地压缩模型
+        useGLTF.preload('/avatar.glb', false, false, (loader) => {
+          if (loader.setMeshoptDecoder) {
+            loader.setMeshoptDecoder(MeshoptDecoder);
+          }
+        });
+        console.log('✅ 本地压缩模型预加载完成');
         
         // 延迟一点时间确保加载完成
         setTimeout(() => {
@@ -304,7 +309,7 @@ const Canvas3D: React.FC<Canvas3DProps> = ({ className = '', currentClothing }) 
         }, 1000);
         
       } catch (error) {
-        console.error('❌ GitHub Raw模型加载失败:', error);
+        console.error('❌ 本地压缩模型加载失败:', error);
         console.log('🔄 尝试备用模型...');
         
         // 尝试备用模型
@@ -407,7 +412,7 @@ const Canvas3D: React.FC<Canvas3DProps> = ({ className = '', currentClothing }) 
           onError={handleCanvasError}
         >
           <color attach="background" args={['#f8fafc']} />
-          <SceneContent modelUrl="https://raw.githubusercontent.com/jialunliang040304-githuoo/ai-digital-wardrobe/main/public/avatar.glb" currentClothing={currentClothing} />
+          <SceneContent modelUrl="/avatar.glb" currentClothing={currentClothing} />
         </Canvas>
       </div>
 
@@ -467,8 +472,11 @@ const Canvas3D: React.FC<Canvas3DProps> = ({ className = '', currentClothing }) 
   );
 };
 
-// 预加载GitHub Raw模型
-const GITHUB_RAW_URL = 'https://raw.githubusercontent.com/jialunliang040304-githuoo/ai-digital-wardrobe/main/public/avatar.glb';
-useGLTF.preload(GITHUB_RAW_URL);
+// 预加载本地压缩模型
+useGLTF.preload('/avatar.glb', false, false, (loader) => {
+  if (loader.setMeshoptDecoder) {
+    loader.setMeshoptDecoder(MeshoptDecoder);
+  }
+});
 
 export default Canvas3D;
