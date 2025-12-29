@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Camera, Scan as ScanIcon, Upload, Users, Zap, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Camera, Upload, Users, Zap, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 interface ScanProps {
   isActive: boolean;
