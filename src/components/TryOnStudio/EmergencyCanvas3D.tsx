@@ -7,7 +7,7 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, useGLTF, Html } from '@react-three/drei';
 import FallbackAvatar from './FallbackAvatar';
 import * as THREE from 'three';
-import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
+// import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 
 interface EmergencyCanvas3DProps {
   className?: string;
@@ -50,12 +50,7 @@ function SimpleAvatar() {
   const [currentUrlIndex, setCurrentUrlIndex] = useState(0);
   
   try {
-    const { scene } = useGLTF(modelUrl, false, false, (loader) => {
-      // 配置Meshopt解码器支持压缩模型
-      if (loader.setMeshoptDecoder) {
-        loader.setMeshoptDecoder(MeshoptDecoder);
-      }
-    });
+    const { scene } = useGLTF(modelUrl);
     
     useFrame((state) => {
       if (group.current) {
@@ -238,10 +233,6 @@ const EmergencyCanvas3D: React.FC<EmergencyCanvas3DProps> = ({ className = '' })
 };
 
 // 预加载本地压缩模型
-useGLTF.preload('/avatar.glb', false, false, (loader) => {
-  if (loader.setMeshoptDecoder) {
-    loader.setMeshoptDecoder(MeshoptDecoder);
-  }
-});
+useGLTF.preload('/avatar.glb');
 
 export default EmergencyCanvas3D;

@@ -7,7 +7,8 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, useGLTF, Environment, ContactShadows, Html, useTexture } from '@react-three/drei';
 import { RotateCcw } from 'lucide-react';
 import * as THREE from 'three';
-import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
+// 尝试不同的导入方式
+// import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 
 interface Canvas3DProps {
   className?: string;
@@ -82,12 +83,8 @@ function AvatarModel({ url }: { url: string }) {
   console.log(`🔗 使用模型链接 ${currentUrlIndex + 1}/${fallbackUrls.length}:`, modelUrl);
   
   try {
-    const { scene } = useGLTF(modelUrl, false, false, (loader) => {
-      // 配置Meshopt解码器支持压缩模型
-      if (loader.setMeshoptDecoder) {
-        loader.setMeshoptDecoder(MeshoptDecoder);
-      }
-    });
+    // 先尝试不使用Meshopt解码器
+    const { scene } = useGLTF(modelUrl);
     
     useFrame((state) => {
       if (group.current) {
@@ -296,11 +293,7 @@ const Canvas3D: React.FC<Canvas3DProps> = ({ className = '', currentClothing }) 
         console.log(`✅ 本地压缩avatar.glb文件存在，大小: ${fileSize} bytes`);
         
         // 预加载本地压缩模型
-        useGLTF.preload('/avatar.glb', false, false, (loader) => {
-          if (loader.setMeshoptDecoder) {
-            loader.setMeshoptDecoder(MeshoptDecoder);
-          }
-        });
+        useGLTF.preload('/avatar.glb');
         console.log('✅ 本地压缩模型预加载完成');
         
         // 延迟一点时间确保加载完成
@@ -473,10 +466,6 @@ const Canvas3D: React.FC<Canvas3DProps> = ({ className = '', currentClothing }) 
 };
 
 // 预加载本地压缩模型
-useGLTF.preload('/avatar.glb', false, false, (loader) => {
-  if (loader.setMeshoptDecoder) {
-    loader.setMeshoptDecoder(MeshoptDecoder);
-  }
-});
+useGLTF.preload('/avatar.glb');
 
 export default Canvas3D;

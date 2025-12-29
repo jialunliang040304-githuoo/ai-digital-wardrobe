@@ -4,6 +4,7 @@ import { ClothingItem, ClothingCategory, WornClothing } from '../../types';
 import { useAppContext, actions } from '../../context/AppContext';
 import Canvas3D from '../TryOnStudio/Canvas3D';
 import EmergencyCanvas3D from '../TryOnStudio/EmergencyCanvas3D';
+import TestCanvas3D from '../TryOnStudio/TestCanvas3D';
 import ClothingCarousel from '../TryOnStudio/ClothingCarousel';
 import SaveLookModal from '../TryOnStudio/SaveLookModal';
 import { BodyScanModal } from '../AI/BodyScanModal';
@@ -69,7 +70,7 @@ const TryOnStudio: React.FC<TryOnStudioProps> = ({ isActive }) => {
   const [aiGeneratedModels, setAiGeneratedModels] = useState<AIModelResult[]>([]);
   const [currentGaussianModel, setCurrentGaussianModel] = useState<string | null>(null);
   const [processingTask, setProcessingTask] = useState<GaussianSplattingTask | null>(null);
-  const [viewMode, setViewMode] = useState<'simple' | 'gaussian' | 'emergency'>('simple');
+  const [viewMode, setViewMode] = useState<'simple' | 'gaussian' | 'emergency' | 'test'>('simple');
   const [showClothingUploader, setShowClothingUploader] = useState(false);
   const [showSmartRecommendation, setShowSmartRecommendation] = useState(false);
   const [showColorMatcher, setShowColorMatcher] = useState(false);
@@ -387,6 +388,16 @@ const TryOnStudio: React.FC<TryOnStudioProps> = ({ isActive }) => {
             简易3D
           </button>
           <button
+            onClick={() => setViewMode('test')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              viewMode === 'test' 
+                ? 'bg-green-500 text-white' 
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            🧪 测试模式
+          </button>
+          <button
             onClick={() => setViewMode('gaussian')}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               viewMode === 'gaussian' 
@@ -429,6 +440,8 @@ const TryOnStudio: React.FC<TryOnStudioProps> = ({ isActive }) => {
         >
           {viewMode === 'simple' ? (
             <Canvas3D className="aspect-[3/4]" currentClothing={state.currentLook} />
+          ) : viewMode === 'test' ? (
+            <TestCanvas3D className="aspect-[3/4]" />
           ) : viewMode === 'emergency' ? (
             <EmergencyCanvas3D className="aspect-[3/4]" currentClothing={state.currentLook} />
           ) : (
