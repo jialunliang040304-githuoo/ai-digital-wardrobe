@@ -38,11 +38,11 @@ function SimpleLoader() {
 function SimpleAvatar() {
   const group = useRef<THREE.Group>(null);
   const [error, setError] = useState<string | null>(null);
-  const [modelUrl, setModelUrl] = useState('/avatar.glb'); // 直接使用本地压缩模型
+  const [modelUrl, setModelUrl] = useState('https://wardrobe-models-1328066145.cos.ap-guangzhou.myqcloud.com/avatar.glb'); // 腾讯云COS模型
   
-  // 本地压缩模型优先URL列表
+  // 腾讯云COS模型优先URL列表
   const fallbackUrls = [
-    '/avatar.glb', // 本地压缩模型（12MB）
+    'https://wardrobe-models-1328066145.cos.ap-guangzhou.myqcloud.com/avatar.glb', // 腾讯云COS模型
     'https://threejs.org/examples/models/gltf/RobotExpressive/RobotExpressive.glb', // 机器人
     'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Duck/glTF-Binary/Duck.glb' // 小鸭子
   ];
@@ -60,7 +60,7 @@ function SimpleAvatar() {
 
     useEffect(() => {
       if (scene) {
-        console.log('✅ 紧急模式本地压缩模型加载成功:', modelUrl);
+        console.log('✅ 紧急模式腾讯云模型加载成功:', modelUrl);
         scene.traverse((child) => {
           if (child instanceof THREE.Mesh) {
             child.castShadow = true;

@@ -36,11 +36,11 @@ function SimpleAvatar() {
   const group = useRef<THREE.Group>(null);
   const [error, setError] = useState<string | null>(null);
   
-  console.log('🔄 尝试加载 /avatar.glb');
+  console.log('🔄 尝试加载腾讯云avatar.glb');
   
   try {
     // 不使用Meshopt解码器，直接加载
-    const { scene } = useGLTF('/avatar.glb');
+    const { scene } = useGLTF('https://wardrobe-models-1328066145.cos.ap-guangzhou.myqcloud.com/avatar.glb');
     
     useFrame((state) => {
       if (group.current) {

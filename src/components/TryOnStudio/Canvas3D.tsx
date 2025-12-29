@@ -72,7 +72,7 @@ function AvatarModel({ url }: { url: string }) {
   
   // 使用本地压缩模型，备用CDN模型
   const fallbackUrls = [
-    '/avatar.glb', // 本地压缩模型（12MB）
+    'https://wardrobe-models-1328066145.cos.ap-guangzhou.myqcloud.com/avatar.glb', // 腾讯云COS模型
     'https://threejs.org/examples/models/gltf/RobotExpressive/RobotExpressive.glb', // CDN备用
     'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Duck/glTF-Binary/Duck.glb' // 小鸭子
   ];
@@ -107,7 +107,7 @@ function AvatarModel({ url }: { url: string }) {
       }
     }, [scene]);
 
-    // 智能缩放 - 原始avatar.glb使用1.5，其他模型调整
+    // 智能缩放 - 腾讯云avatar.glb使用1.5，其他模型调整
     const scale = modelUrl.includes('avatar.glb') ? 1.5 : 
                   modelUrl.includes('RobotExpressive') ? 0.8 : 
                   modelUrl.includes('Duck') ? 2.0 : 1.2;
@@ -279,22 +279,22 @@ const Canvas3D: React.FC<Canvas3DProps> = ({ className = '', currentClothing }) 
     
     const loadModel = async () => {
       try {
-        console.log('🔄 开始加载本地压缩avatar.glb模型...');
+        console.log('🔄 开始加载腾讯云COS avatar.glb模型...');
         setIsLoading(true);
         setHasError(false);
         
-        // 检查本地压缩模型文件是否存在
-        const response = await fetch('/avatar.glb', { method: 'HEAD' });
+        // 检查腾讯云模型文件是否存在
+        const response = await fetch('https://wardrobe-models-1328066145.cos.ap-guangzhou.myqcloud.com/avatar.glb', { method: 'HEAD' });
         if (!response.ok) {
-          throw new Error(`本地压缩模型文件不存在: HTTP ${response.status}`);
+          throw new Error(`腾讯云模型文件不存在: HTTP ${response.status}`);
         }
         
         const fileSize = response.headers.get('content-length');
-        console.log(`✅ 本地压缩avatar.glb文件存在，大小: ${fileSize} bytes`);
+        console.log(`✅ 腾讯云avatar.glb文件存在，大小: ${fileSize} bytes`);
         
-        // 预加载本地压缩模型
-        useGLTF.preload('/avatar.glb');
-        console.log('✅ 本地压缩模型预加载完成');
+        // 预加载腾讯云模型
+        useGLTF.preload('https://wardrobe-models-1328066145.cos.ap-guangzhou.myqcloud.com/avatar.glb');
+        console.log('✅ 腾讯云模型预加载完成');
         
         // 延迟一点时间确保加载完成
         setTimeout(() => {
@@ -302,7 +302,7 @@ const Canvas3D: React.FC<Canvas3DProps> = ({ className = '', currentClothing }) 
         }, 1000);
         
       } catch (error) {
-        console.error('❌ 本地压缩模型加载失败:', error);
+        console.error('❌ 腾讯云模型加载失败:', error);
         console.log('🔄 尝试备用模型...');
         
         // 尝试备用模型
@@ -405,7 +405,7 @@ const Canvas3D: React.FC<Canvas3DProps> = ({ className = '', currentClothing }) 
           onError={handleCanvasError}
         >
           <color attach="background" args={['#f8fafc']} />
-          <SceneContent modelUrl="/avatar.glb" currentClothing={currentClothing} />
+          <SceneContent modelUrl="https://wardrobe-models-1328066145.cos.ap-guangzhou.myqcloud.com/avatar.glb" currentClothing={currentClothing} />
         </Canvas>
       </div>
 
@@ -415,7 +415,7 @@ const Canvas3D: React.FC<Canvas3DProps> = ({ className = '', currentClothing }) 
           <div className="text-center">
             <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
             <p className="text-gray-600 font-medium">加载3D模型中...</p>
-            <p className="text-gray-500 text-sm mt-2">正在加载avatar.glb文件</p>
+            <p className="text-gray-500 text-sm mt-2">正在加载腾讯云COS模型</p>
           </div>
         </div>
       )}
@@ -465,7 +465,7 @@ const Canvas3D: React.FC<Canvas3DProps> = ({ className = '', currentClothing }) 
   );
 };
 
-// 预加载本地压缩模型
-useGLTF.preload('/avatar.glb');
+// 预加载腾讯云COS模型
+useGLTF.preload('https://wardrobe-models-1328066145.cos.ap-guangzhou.myqcloud.com/avatar.glb');
 
 export default Canvas3D;
