@@ -6,6 +6,7 @@ import React, { Suspense, useRef, useState, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, useGLTF, Environment, ContactShadows, Html, useTexture } from '@react-three/drei';
 import { RotateCcw } from 'lucide-react';
+import ModelDiagnostics from './ModelDiagnostics';
 import * as THREE from 'three';
 // 尝试不同的导入方式
 // import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
@@ -73,8 +74,9 @@ function AvatarModel({ url }: { url: string }) {
   // 使用本地压缩模型，备用CDN模型
   const fallbackUrls = [
     'https://wardrobe-models-1328066145.cos.ap-guangzhou.myqcloud.com/avatar.glb', // 腾讯云COS模型
-    'https://threejs.org/examples/models/gltf/RobotExpressive/RobotExpressive.glb', // CDN备用
-    'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Duck/glTF-Binary/Duck.glb' // 小鸭子
+    'https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models@master/2.0/Duck/glTF-Binary/Duck.glb', // JSdelivr CDN
+    'https://threejs.org/examples/models/gltf/RobotExpressive/RobotExpressive.glb', // Three.js官方CDN
+    'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Duck/glTF-Binary/Duck.glb' // GitHub Raw
   ];
   
   const [currentUrlIndex, setCurrentUrlIndex] = useState(0);
@@ -83,6 +85,7 @@ function AvatarModel({ url }: { url: string }) {
   console.log(`🔗 使用模型链接 ${currentUrlIndex + 1}/${fallbackUrls.length}:`, modelUrl);
   
   try {
+    console.log(`🔗 正在加载模型: ${modelUrl}`);
     // 先尝试不使用Meshopt解码器
     const { scene } = useGLTF(modelUrl);
     
@@ -284,7 +287,13 @@ const Canvas3D: React.FC<Canvas3DProps> = ({ className = '', currentClothing }) 
         setHasError(false);
         
         // 检查腾讯云模型文件是否存在
-        const response = await fetch('https://wardrobe-models-1328066145.cos.ap-guangzhou.myqcloud.com/avatar.glb', { method: 'HEAD' });
+        const response = await fetch('https://wardrobe-models-1328066145.cos.ap-guangzhou.myqcloud.com/avatar.glb', { 
+          method: 'HEAD',
+          mode: 'cors',
+          headers: {
+            'Accept': 'model/gltf-binary, application/octet-stream, */*'
+          }
+        });
         if (!response.ok) {
           throw new Error(`腾讯云模型文件不存在: HTTP ${response.status}`);
         }
@@ -406,6 +415,7 @@ const Canvas3D: React.FC<Canvas3DProps> = ({ className = '', currentClothing }) 
         >
           <color attach="background" args={['#f8fafc']} />
           <SceneContent modelUrl="https://wardrobe-models-1328066145.cos.ap-guangzhou.myqcloud.com/avatar.glb" currentClothing={currentClothing} />
+      <ModelDiagnostics modelUrl="https://wardrobe-models-1328066145.cos.ap-guangzhou.myqcloud.com/avatar.glb" />
         </Canvas>
       </div>
 
